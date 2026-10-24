@@ -1,0 +1,135 @@
+{
+  "_README": "Режиссерский конфиг. Управляет структурой песни, правилами секций, пулами ассетов и стилями.",
+  "layers": {
+    "0_audio": "Audio Track",
+    "1_paper": "Paper Background",
+    "2_main": "Sketch Arts",
+    "3_shading": "Hatching & Shading",
+    "4_ribbons": "Satin Ribbons",
+    "5_ink": "Ink Splashes",
+    "6_text": "Subtitles",
+    "7_top": "Pencil Dust"
+  },
+  "songStructure": [
+    { "time": 0.0, "name": "Intro (Пробуждение)", "type": "intro" },
+    { "time": 9.53, "name": "Verse (Починка крыльев)", "type": "verse" },
+    { "time": 39.0, "name": "Hook (В небе)", "type": "hook" },    
+    { "time": 44.00, "name": "Chorus (Полет)", "type": "chorus" },
+    { "time": 59.99, "name": "Outro (Падение)", "type": "outro" },
+    { "time": 78.00, "name": "Лого (Копирайты)", "type": "logo" }	
+  ],
+  "sectionTypeRules": {
+    "intro": { "allowedLayers": [1, 2, 3, 6], "blackout": false, "globalFilter": "color_burn_middle" },
+    "verse": { "allowedLayers": [1, 2, 3, 6, 7], "blackout": false },
+    "hook": { "allowedLayers": [4], "blackout": false, "globalFilter": "color_burn_middle" },
+    "chorus": { "allowedLayers": [1, 2, 3, 5, 6, 7], "blackout": false },
+    "outro": { 
+      "allowedLayers": [2, 6, 7], 
+      "blackout": false,
+      "globalFilter": "color_burn_middle"
+    },
+    "logo": { "allowedLayers": [2], "blackout": false }	
+  },
+"directorOverrides": {
+    "_hint": "Здесь можно жестко привязать директивы к конкретным файлам, перебивая например, рандом",
+    "files": {
+      "media/Scenes/i-05.png": {
+        "movement": "micro_jitter",
+        "appearance": "hard_cut"
+      },
+      "media/Scenes/i-07.png": {
+        "duration": 3.5
+      },	  
+      "media/Scenes/i-0013.mp4": {
+        "movement": "cinematic_zoom_in_shake",
+        "appearance": "hard_cut"
+      },
+      "media/Scenes/i-08.mp4": {
+        "entrance": "hard_cut",
+        "exit": "burn_out"
+      },	  
+      "media/Scenes/i-08-1.png": {
+        "movement": "swing_center",
+        "duration": 3.5
+      },
+      "media/Scenes/i-12.png": {
+        "movement": "cinematic_zoom_in_shake"
+      },
+      "media/Scenes/prlx/i-14-prlx-b1.png": {
+        "movementShift": 1	
+      },
+      "media/Scenes/prlx/i-14-prlx-b2.png": {
+        "movementShift": 2		
+      },
+      "media/Scenes/prlx/i-15-prlx-b1.png": {
+        "movement": "slash_anime_flyby"
+      },	  
+      "media/Scenes/prlx/i-15-prlx-b2.png": {
+        "movement": "chaotic_micro_zoom"
+      },
+      "media/Scenes/prlx/i-16-prlx-b1.png": {
+        "movement": "downfall_with_spin"
+      },
+      "media/Scenes/fly/pl12.mp4": {
+        "appearance": "soft_fade"
+      }
+    }
+  },
+  "assetPools": {
+    "sketches": {
+      "enabled": true,
+      "class": "narrative",
+      "layerIndex": 2,
+      "path": "media/Scenes",
+      "blendMode": "multiply",
+      "baseOpacity": 1.0,
+      "allowedMovements": ["fast_dolly_in", "aggressive_shake", "glitch_pan_left", 
+	  "glitch_pan_right", "rapid_pulse", "cinematic_zoom_in_shake"],
+      "allowedMovements_b1": ["slow_pan_left", "slow_pan_right", "micro_jitter"],
+      "allowedMovements_b2": ["rapid_pulse", "subtle_zoom"],
+      "defaultAppearance": "glitch_snap"
+    },
+    "fly": {
+      "enabled": true,
+      "class": "narrative",
+      "layerIndex": 4,
+      "path": "media/Scenes/fly",
+      "blendMode": "multiply",
+      "baseOpacity": 1.0,
+      "allowedMovements": ["micro_jitter"],
+      "allowedMovements_b1": ["slow_pan_left", "slow_pan_right", "micro_jitter"],
+      "allowedMovements_b2": ["rapid_pulse", "subtle_zoom"],
+      "defaultAppearance": "hard_cut"
+    },
+    "dust_overlay": {
+      "enabled": true,
+      "class": "atmosphere",
+      "layerIndex": 7,
+      "path": "media/sfx/dust",
+      "blendMode": "multiply",
+      "baseOpacity": 0.8,
+      "allowedMovements": ["none"],
+      "defaultAppearance": "fade_in_base"
+    },
+    "vert_lines": {
+      "enabled": true,
+      "class": "atmosphere",
+      "layerIndex": 7,
+      "path": "media/sfx/vert-lines",
+      "blendMode": "multiply",
+      "baseOpacity": 0.2,
+      "allowedMovements": ["none"],
+      "defaultAppearance": "fade_in_base"
+    },	
+    "storm_transitions": {
+      "enabled": true,
+      "class": "transition",
+      "layerIndex": 7,
+      "path": "media/sfx/transition",
+      "blendMode": "multiply",
+      "baseOpacity": 1.0,
+      "allowedMovements": ["none"],
+      "defaultAppearance": "scribble_flash"
+    }
+  }
+}

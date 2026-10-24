@@ -1,0 +1,52 @@
+ФРЕЙМВОРК HypperFrames/HF (служебные) - Node.js + ffmpeg + допмодули
+
+compositions
+.hyperframes
+.thumbnails
+node_modules
+package-lock.json
+package.json
+preview.html
+renders
+
+МОЙ ДВИЖОК
+
+run.js - запуск установки слоев на таймлайн и рендеринга 
+build_index.js - общий файл сборки
+index.html - модифицированный файл из HF
+
+build_audio.js - слой аудио
+build_beats.js - слой визулизации бита
+build_dust.js - слой программных эффектов 
+build_subs.j - слой субтитров
+build_images.js - слой изображениний/видео/параллаксов
+build_visuals.js - слой визуальных видеоо-эффектов
+
+Служебные утилиты (расширения)
+
+utils-preview.js - просмотрщик эффектов
+beats.json - пики звуков
+build_info.js - продвинутый лог сборки
+
+Настройки
+
+config.json - базовые
+director-config.json - настройки объектов (это основное для интерфейса)
+library-config.json - библиотека настроек (ее используют многие файлы, в основном director-config.json)
+
+Логи
+
+debug_asset_builder.txt
+debug_images.txt
+debug_log.txt
+
+Файлы после рендера
+
+Ikar_1080x1920.mp4
+Ikar_720x1280.mp4
+
+Хранилище исходных медиа-файлов
+media
+
+Этот файл
+list.txt

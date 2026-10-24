@@ -1,0 +1,22 @@
+{
+  "name": "303",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build_all.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "adm-zip": "^0.6.1",
+    "audio-decode": "^3.12.0",
+    "ffprobe-static": "^3.1.0",
+    "get-video-duration": "^5.0.0",
+    "hyperframes": "^0.8.166",
+    "music-tempo": "^1.0.3",
+    "sharp": "^0.35.5"
+  }
+}
