@@ -11,11 +11,15 @@ function log(msg) {
 
 (async () => {
     try {
-        log("=== СТАРТ СБОРКИ НАРРАТИВА (АВТОМАТИЧЕСКАЯ ПОДГОНКА ПОД ДЛИНУ ВИДЕО) ===");
+        log("=== СТАРТ СБОРКИ НАРРАТИВА (РИТМИЧЕСКИЙ МАГНИТ) ===");
         
-        const configPath = path.join(process.cwd(), 'config.json');
-        const directorPath = path.join(process.cwd(), 'director-config.json');
-        const libraryPath = path.join(process.cwd(), 'library-config.json');
+        // Жесткая привязка к корню проекта для надежного чтения файлов
+        const PROJECT_ROOT = "C:\\Users\\webpr\\YandexDisk-webproektor\\Ikar";
+        const rootDir = fs.existsSync(PROJECT_ROOT) ? PROJECT_ROOT : process.cwd();
+
+        const configPath = path.join(rootDir, 'config.json');
+        const directorPath = path.join(rootDir, 'director-config.json');
+        const libraryPath = path.join(rootDir, 'library-config.json');
         
         if (!fs.existsSync(configPath)) throw new Error("config.json не найден");
         if (!fs.existsSync(directorPath)) throw new Error("director-config.json не найден");
@@ -29,15 +33,55 @@ function log(msg) {
         const totalDuration = isTest ? config.testMode.duration : config.project.totalDuration;
         const testStart = isTest ? config.testMode.start : 0;
         const testEnd = testStart + totalDuration;
-        const compDir = path.join(process.cwd(), 'compositions');
+        const compDir = path.join(rootDir, 'compositions');
 
         if (!config.effects || typeof config.effects.imageDuration === 'undefined') {
             throw new Error("КРИТИЧЕСКАЯ ОШИБКА: В config.json не задан параметр effects.imageDuration!");
         }
-        const BASE_IMG_DURATION = config.effects.imageDuration;
+        const MAX_IMG_DURATION = config.effects.imageDuration; 
+        const MIN_IMG_DURATION = 2.5; 
         const OVERLAP = 0.25; 
 
-        // 1. Вытягиваем все CSS анимации из БИБЛИОТЕКИ
+        // ====================================================================
+        // РИТМИЧЕСКИЙ МАГНИТ: Абсолютная загрузка битов и субтитров
+        // ====================================================================
+        let beats = [];
+        try {
+            const beatsPath = path.join(rootDir, 'beats.json');
+            if (fs.existsSync(beatsPath)) {
+                const beatsData = JSON.parse(fs.readFileSync(beatsPath, 'utf8'));
+                beats = beatsData.beats || [];
+                log(`🎵 УСПЕХ: Загружено битов - ${beats.length}`);
+            } else {
+                log(`❌ КРИТИЧНО: Файл beats.json не найден по пути ${beatsPath}`);
+            }
+        } catch (e) {
+            log(`⚠️ Ошибка чтения битов: ${e.message}`);
+        }
+
+        let subtitleStarts = [];
+        try {
+            const srtPath = path.join(rootDir, 'media', 'subtitles.srt');
+            if (fs.existsSync(srtPath)) {
+                const srtContent = fs.readFileSync(srtPath, 'utf8');
+                const timeRegex = /(\d{2}):(\d{2}):(\d{2}),(\d{3})\s*-->/g;
+                let match;
+                while ((match = timeRegex.exec(srtContent)) !== null) {
+                    const h = parseInt(match[1], 10);
+                    const m = parseInt(match[2], 10);
+                    const s = parseInt(match[3], 10);
+                    const ms = parseInt(match[4], 10);
+                    subtitleStarts.push(h * 3600 + m * 60 + s + ms / 1000);
+                }
+                log(`💬 УСПЕХ: Загружено строк субтитров - ${subtitleStarts.length}`);
+            } else {
+                log(`❌ КРИТИЧНО: Файл субтитров не найден по пути ${srtPath}`);
+            }
+        } catch (e) {
+            log(`⚠️ Ошибка чтения субтитров: ${e.message}`);
+        }
+        // ====================================================================
+
         let cssLibrary = "";
         if (library.effectsPool) {
             if (library.effectsPool.movements) {
@@ -57,20 +101,19 @@ function log(msg) {
                 body { margin: 0; background: transparent; overflow: hidden; }
                 #root { position: absolute; width: 100vw; height: 100vh; pointer-events: none; }
                 .anim-wrapper { position: absolute; width: 100%; height: 100%; pointer-events: none; transform-origin: center; }
-                @keyframes wrapper_fade_in { 0% { opacity: 0; } 100% { opacity: 1; } }
+                @keyframes wrapper_fade_in { 0% { opacity: 0.2; } 100% { opacity: 1; } }
                 .image-layer { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-size: cover; background-position: center; transform-origin: center center; }
                 .video-layer { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; transform-origin: center center; }
                 ${cssLibrary}
             </style>
         `;
 
-        // 2. Ищем ВСЕ пулы и АСИНХРОННО проверяем длительность видео
         const activeAssetPools = director.assetPools || config.assetPools;
         const narrativePools = {};
         
         for (const [poolName, pool] of Object.entries(activeAssetPools)) {
             if (pool.enabled && pool.class === "narrative") {
-                const scenesPath = path.join(process.cwd(), pool.path);
+                const scenesPath = path.join(rootDir, pool.path);
                 if (!fs.existsSync(scenesPath)) continue;
                 
                 const rawFiles = fs.readdirSync(scenesPath)
@@ -112,9 +155,6 @@ function log(msg) {
 
         if (Object.keys(narrativePools).length === 0) {
             log(`⚠️ Ни один пул сюжетов не найден. Генерирую пустую сцену.`);
-            const emptyHtml = `<!DOCTYPE html>\n<html>\n<head>${styleBlock}</head>\n<body>\n<div id="root" data-composition-id="images_scene" data-width="${config.project.resolution.width}" data-height="${config.project.resolution.height}" data-duration="${totalDuration}"></div>\n<script>window.__timelines = window.__timelines || {}; window.__timelines["images_scene"] = document.querySelector('#root');</script>\n</body>\n</html>`;
-            if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
-            fs.writeFileSync(path.join(compDir, 'images_scene.html'), emptyHtml, 'utf8');
             process.exit(0);
         }
 
@@ -127,10 +167,14 @@ function log(msg) {
         while (currentTime < config.project.totalDuration) {
             const absStart = currentTime;
 
+            // ====================================================================
+            // ИДЕНТИФИКАЦИЯ СЕКЦИИ (ЗАЩИТА ОТ ДРОБЕЙ JS)
+            // ====================================================================
+            const EPSILON = 0.01; // 10 миллисекунд погрешности
             let currentBlock = structure[0];
             let currentBlockEnd = totalDuration;
             for (let i = 0; i < structure.length; i++) {
-                if (absStart >= structure[i].time) {
+                if (absStart + EPSILON >= structure[i].time) {
                     currentBlock = structure[i];
                     currentBlockEnd = (i < structure.length - 1) ? structure[i + 1].time : totalDuration;
                 }
@@ -138,7 +182,7 @@ function log(msg) {
             const rules = sectionRulesMap[currentBlock.type] || {};
             
             if (rules.blackout) {
-                currentTime += BASE_IMG_DURATION; 
+                currentTime += MAX_IMG_DURATION; 
                 continue; 
             }
 
@@ -155,7 +199,7 @@ function log(msg) {
             }
 
             if (!activePool) {
-                currentTime += BASE_IMG_DURATION;
+                currentTime += MAX_IMG_DURATION;
                 continue;
             }
 
@@ -164,13 +208,41 @@ function log(msg) {
             const fileObj = files[imageIndex % files.length];
             const file = fileObj.path;
             
-            let currentImgDuration = BASE_IMG_DURATION;
+            // ====================================================================
+            // ЛОГИКА РИТМИЧЕСКОГО МАГНИТА И СШИВАТЕЛЯ ГРАНИЦ
+            // ====================================================================
+            let maxAllowed = Math.min(MAX_IMG_DURATION, currentBlockEnd - absStart);
+            let minAllowed = Math.min(MIN_IMG_DURATION, maxAllowed);
+            let rhythmDuration = maxAllowed;
 
-            if (fileObj.realDuration && fileObj.realDuration < BASE_IMG_DURATION) {
+            const windowStart = absStart + minAllowed;
+            const windowEnd = absStart + maxAllowed;
+
+            const subsInWindow = subtitleStarts.filter(t => t >= windowStart && t <= windowEnd);
+            if (subsInWindow.length > 0) {
+                rhythmDuration = Math.max(...subsInWindow) - absStart;
+            } else {
+                const beatsInWindow = beats.filter(b => b >= windowStart && b <= windowEnd);
+                if (beatsInWindow.length > 0) {
+                    rhythmDuration = Math.max(...beatsInWindow) - absStart;
+                }
+            }
+
+            let currentImgDuration = rhythmDuration;
+
+            if (fileObj.realDuration && fileObj.realDuration < currentImgDuration) {
                 currentImgDuration = fileObj.realDuration;
             }
 
+            // МАГНИТ К СТЕНЕ: Если до конца секции остался некрасивый "огрызок" (меньше минимума),
+            // мы не плодим короткий кадр, а растягиваем текущий ровно до границы секции!
+            const timeToSectionEnd = currentBlockEnd - absStart;
+            if (timeToSectionEnd - currentImgDuration > 0 && timeToSectionEnd - currentImgDuration < MIN_IMG_DURATION) {
+                 currentImgDuration = timeToSectionEnd;
+            }
+
             const fileOverride = director.directorOverrides?.files?.[file];
+
             if (fileOverride) {
                 if (fileOverride.duration) {
                     currentImgDuration = fileOverride.duration;
@@ -198,7 +270,6 @@ function log(msg) {
             const isFirst = (absStart === 0);
             const isVideo = file.toLowerCase().endsWith('.mp4');
             
-            // --- РАЗДЕЛЬНЫЙ ВХОД, ВЫХОД И LEGACY APPEARANCE ---
             const customEntrance = fileOverride?.entrance;
             const customExit = fileOverride?.exit;
             const legacyAppear = fileOverride?.appearance;
@@ -213,15 +284,11 @@ function log(msg) {
                 if (appear) animParts.push(`${appear} ${duration + OVERLAP}s linear forwards`);
             }
             
-            // Заменяем анимацию движения, чтобы она тоже учитывала точный durStr
-            // (пересобираем animParts корректно)
-            // Первым идет movement, затем входы/выходы
-            
             const layersToRender = []; 
             let currentZIndex = 1; 
             
             if (!isVideo) {
-                const scenesPath = path.join(process.cwd(), activePool.path);
+                const scenesPath = path.join(rootDir, activePool.path);
                 const prlxDir = path.join(scenesPath, 'prlx');
                 if (fs.existsSync(prlxDir)) {
                     ['b3', 'b2', 'b1'].forEach(layerSuffix => {
@@ -261,27 +328,23 @@ function log(msg) {
             const startStr = renderStart.toFixed(3);
             
             const currentBlend = (layersToRender.length > 1) ? 'normal' : baseBlendMode;
-
-            const wrapperStyle = isFirst ? "" : `opacity: 0; animation: wrapper_fade_in ${OVERLAP}s ease-in forwards;`;
+            const wrapperStyle = isFirst ? "" : `animation: wrapper_fade_in ${OVERLAP}s ease-out forwards;`;
 
             let groupHTML = `\n<div id="wrap-${activePoolName}-${imageIndex}" class="anim-wrapper" style="${wrapperStyle}">\n`;
             
             layersToRender.forEach((layer) => {
-                // Проверяем, есть ли оверрайд движения конкретно для этого подслоя (например, для b1)
                 const layerOverride = director.directorOverrides?.files?.[layer.path];
                 let finalMove = layerOverride?.movement || (layer.id === 'fg' ? baseMove : null);
                 
                 if (!finalMove && layer.id !== 'fg') {
                     const bgPoolKey = `allowedMovements_${layer.id}`;
                     const bgMoves = activePool[bgPoolKey] || ["none"];
-                    // Явное сопоставление сдвигов для каждого слоя параллакса
                     const shiftMap = { 'b1': 1, 'b2': 2, 'b3': 3 };
                     const shift = shiftMap[layer.id] || 0;
                     const manualShift = layerOverride?.movementShift || 0;
                     finalMove = bgMoves[(imageIndex + shift + manualShift) % bgMoves.length];
                 }
                 
-                // Пересобираем массив анимаций для конкретного слоя (с учетом его уникального finalMove)
                 let layerAnimParts = [`${finalMove} ${durStr}s linear forwards`];
                 if (customEntrance || customExit) {
                     if (customEntrance) layerAnimParts.push(`${customEntrance} ${durStr}s linear forwards`);
@@ -333,7 +396,7 @@ ${imagesHTML}
 </html>`;
 
         fs.writeFileSync(path.join(compDir, 'images_scene.html'), htmlOutput, 'utf8');
-        log(`✅ УСПЕХ! Нарратив собран с поддержкой раздельных entrance/exit, movementShift и подгонкой видео.`);
+        log(`✅ УСПЕХ! Нарратив собран с поддержкой ритмического магнита (субтитры + биты).`);
 
     } catch (e) {
         console.error("❌ Ошибка в build_images.js:", e.message);

@@ -2,7 +2,7 @@
   "_AI_DIRECTOR_MANUAL": "Проект Икар. Вертикальный формат. Монохромный ретро комикс на белом фоне (multiply).",
   "project": {
     "name": "Ikar",
-    "totalDuration": 81.0,
+    "totalDuration": 82.0,
     "resolution": { "width": 1080, "height": 1920 }
   },
   "testMode": { 
@@ -10,7 +10,8 @@
   "start": 30, 
   "duration": 25 },
   "render": { 
-  "quality": "standard",
+  "_options_quality": ["draft", "standard", "high"],
+  "quality": "high",
   "hideDebugLogs": true,
   "fps": 30
   },
@@ -20,10 +21,22 @@
     "imagesFolder": "media/Scenes"
   },
   "effects": { 
-    "imageDuration": 4, 
+    "imageDuration": 4.3, 
     "safeMargin": 0.3,
     "lightingStyle": "dynamic_lamp",
     "colorGrade": "midnight_blue",
-    "noiseStyle": "none"
+    "noiseStyle": "none",
+    "flashes": {
+      "_options_type": ["solid (заливка всего экрана)", "vignette (затемнение от краев к центру, фокус в середине)"],
+      "_options_dynamics": ["sharp (быстрый удар 10%)", "soft (плавное затухание 50%)"],
+      "_options_blendMode": ["multiply (для темного)", "screen (для белого света)", "overlay (контраст)"],
+      
+      "multiplier": 1.5,
+      "type": "vignette",
+      "dynamics": "sharp",
+      "color": "#000000",
+      "intensity": 0.3,
+      "blendMode": "multiply"
+    }
   }
 }

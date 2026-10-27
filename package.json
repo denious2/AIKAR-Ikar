@@ -17,6 +17,7 @@
     "get-video-duration": "^5.0.0",
     "hyperframes": "^0.8.166",
     "music-tempo": "^1.0.3",
-    "sharp": "^0.35.5"
+    "sharp": "^0.35.5",
+    "web-audio-api": "^1.6.0"
   }
 }

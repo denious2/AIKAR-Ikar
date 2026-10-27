@@ -1,45 +1,41 @@
 {
   "_README": "Режиссерский конфиг. Управляет структурой песни, правилами секций, пулами ассетов и стилями.",
   "layers": {
-    "0_audio": "Audio Track",
-    "1_paper": "Paper Background",
-    "2_main": "Sketch Arts",
-    "3_shading": "Hatching & Shading",
-    "4_ribbons": "Satin Ribbons",
-    "5_ink": "Ink Splashes",
-    "6_text": "Subtitles",
-    "7_top": "Pencil Dust"
+    "0_audio": "Аудио трек",
+    "1_paper": "Базовый фон",
+    "2_main": "Основные сцены",
+    "4_fly": "Ассеты полета",
+    "6_text": "Субтитры",
+    "7_top": "Пыль и транзишены",
+    "8_logo": "Логотип"
   },
   "songStructure": [
     { "time": 0.0, "name": "Intro (Пробуждение)", "type": "intro" },
     { "time": 9.53, "name": "Verse (Починка крыльев)", "type": "verse" },
     { "time": 39.0, "name": "Hook (В небе)", "type": "hook" },    
     { "time": 44.00, "name": "Chorus (Полет)", "type": "chorus" },
-    { "time": 59.99, "name": "Outro (Падение)", "type": "outro" },
-    { "time": 78.00, "name": "Лого (Копирайты)", "type": "logo" }	
+    { "time": 60.00, "name": "Outro (Падение)", "type": "outro" },
+    { "time": 78.00, "name": "Лого (Копирайты)", "type": "copyright" }	
   ],
   "sectionTypeRules": {
-    "intro": { "allowedLayers": [1, 2, 3, 6], "blackout": false, "globalFilter": "color_burn_middle" },
-    "verse": { "allowedLayers": [1, 2, 3, 6, 7], "blackout": false },
-    "hook": { "allowedLayers": [4], "blackout": false, "globalFilter": "color_burn_middle" },
-    "chorus": { "allowedLayers": [1, 2, 3, 5, 6, 7], "blackout": false },
-    "outro": { 
-      "allowedLayers": [2, 6, 7], 
-      "blackout": false,
-      "globalFilter": "color_burn_middle"
-    },
-    "logo": { "allowedLayers": [2], "blackout": false }	
+    "intro": 	{ "allowedLayers": [1, 2, 3, 6], "blackout": false, "globalFilter": "color_burn_middle" },
+    "verse": 	{ "allowedLayers": [1, 2, 3, 6, 7], "blackout": false },
+    "hook": 	{ "allowedLayers": [4], "blackout": false, "globalFilter": "color_burn_low" },
+    "chorus": 	{ "allowedLayers": [1, 2, 3, 6, 7], "blackout": false },
+    "outro": 	{  "allowedLayers": [2, 6, 7], "blackout": false, "globalFilter": "color_burn_middle" },
+    "copyright": { "allowedLayers": [5], "blackout": false }	
   },
 "directorOverrides": {
     "_hint": "Здесь можно жестко привязать директивы к конкретным файлам, перебивая например, рандом",
     "files": {
+      "media/Scenes/i-0015.mp4": {
+        "movement": "cinematic_zoom_in_shake",
+        "appearance": "soft_fade"		
+      },		
       "media/Scenes/i-05.png": {
         "movement": "micro_jitter",
         "appearance": "hard_cut"
       },
-      "media/Scenes/i-07.png": {
-        "duration": 3.5
-      },	  
       "media/Scenes/i-0013.mp4": {
         "movement": "cinematic_zoom_in_shake",
         "appearance": "hard_cut"
@@ -48,31 +44,36 @@
         "entrance": "hard_cut",
         "exit": "burn_out"
       },	  
-      "media/Scenes/i-08-1.png": {
-        "movement": "swing_center",
-        "duration": 3.5
-      },
       "media/Scenes/i-12.png": {
         "movement": "cinematic_zoom_in_shake"
       },
+      "media/Scenes/prlx/i-12-prlx-b1.png": {
+        "movement": "slide_run_right_heavy"
+      },	  
+	  "media/Scenes/i-13.mp4": {
+        "appearance": "soft_fade"
+      },
       "media/Scenes/prlx/i-14-prlx-b1.png": {
-        "movementShift": 1	
+        "movement": "downfall"
       },
       "media/Scenes/prlx/i-14-prlx-b2.png": {
-        "movementShift": 2		
+        "movement": "chaotic_expanding_jitter"		
       },
       "media/Scenes/prlx/i-15-prlx-b1.png": {
         "movement": "slash_anime_flyby"
       },	  
       "media/Scenes/prlx/i-15-prlx-b2.png": {
-        "movement": "chaotic_micro_zoom"
+        "movement": "downfall"
       },
-      "media/Scenes/prlx/i-16-prlx-b1.png": {
+      "media/Scenes/prlx/i-16.png": {
         "movement": "downfall_with_spin"
+      },	  
+      "media/Scenes/prlx/i-16-prlx-b1.png": {
+        "movement": "downfall"
       },
       "media/Scenes/fly/pl12.mp4": {
         "appearance": "soft_fade"
-      }
+      } 
     }
   },
   "assetPools": {
@@ -99,6 +100,16 @@
       "allowedMovements": ["micro_jitter"],
       "allowedMovements_b1": ["slow_pan_left", "slow_pan_right", "micro_jitter"],
       "allowedMovements_b2": ["rapid_pulse", "subtle_zoom"],
+      "defaultAppearance": "hard_cut"
+    },
+    "logo": {
+      "enabled": true,
+      "class": "narrative",
+      "layerIndex": 5,
+      "path": "media/Scenes/logo",
+      "blendMode": "normal", 
+      "baseOpacity": 1.0,
+      "allowedMovements": ["logo_slam_end"],
       "defaultAppearance": "hard_cut"
     },
     "dust_overlay": {
@@ -129,7 +140,7 @@
       "blendMode": "multiply",
       "baseOpacity": 1.0,
       "allowedMovements": ["none"],
-      "defaultAppearance": "scribble_flash"
+      "defaultAppearance": "soft_fade"
     }
   }
 }

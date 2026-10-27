@@ -10,38 +10,41 @@
     </style>
 </head>
 <body>
-    <div id="root" data-composition-id="root_scene" data-width="1080" data-height="1920" data-duration="81">
+    <div id="root" data-composition-id="root_scene" data-width="1080" data-height="1920" data-duration="82">
         
         <!-- 0. АУДИО ТРЕК (Слой -1) -->
-        <div id="host-audio" data-composition-id="audio_scene" class="composition-layer clip" data-in="0" data-out="81" data-start="0" data-duration="81" data-track-index="-1" data-composition-src="compositions/audio_scene.html"></div>
+        <div id="host-audio" data-composition-id="audio_scene" class="composition-layer clip" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="-1" data-composition-src="compositions/audio_scene.html"></div>
 
         <!-- 1. ФОНОВЫЕ ЭФФЕКТЫ -->
-        <div id="host-visuals-bg" data-composition-id="visuals_bg_scene" class="composition-layer clip" style="mix-blend-mode: multiply; z-index: 10;" data-in="0" data-out="81" data-start="0" data-duration="81" data-track-index="1" data-composition-src="compositions/visuals_bg_scene.html"></div>
+        <div id="host-visuals-bg" data-composition-id="visuals_bg_scene" class="composition-layer clip" style="mix-blend-mode: multiply; z-index: 10;" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="1" data-composition-src="compositions/visuals_bg_scene.html"></div>
         
         <!-- 2. ГЛАВНЫЕ СЮЖЕТЫ -->
-        <div id="host-images" data-composition-id="images_scene" class="composition-layer clip" style="z-index: 20;" data-in="0" data-out="81" data-start="0" data-duration="81" data-track-index="2" data-composition-src="compositions/images_scene.html"></div>
+        <div id="host-images" data-composition-id="images_scene" class="composition-layer clip" style="z-index: 20;" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="2" data-composition-src="compositions/images_scene.html"></div>
         
         <!-- 3. ПЕРЕДНИЕ ЭФФЕКТЫ (Ленты и Слой 7) -->
-        <div id="host-visuals-fg" data-composition-id="visuals_fg_scene" class="composition-layer clip" style="mix-blend-mode: multiply; z-index: 30;" data-in="0" data-out="81" data-start="0" data-duration="81" data-track-index="3" data-composition-src="compositions/visuals_fg_scene.html"></div>
+        <div id="host-visuals-fg" data-composition-id="visuals_fg_scene" class="composition-layer clip" style="mix-blend-mode: multiply; z-index: 30;" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="3" data-composition-src="compositions/visuals_fg_scene.html"></div>
         
         <!-- 4. ТЕКСТУРА: Пыль, Шум, Виньетка (С MULTIPLY) -->
-        <div id="host-dust" data-composition-id="dust_scene" class="composition-layer clip" style="mix-blend-mode: multiply; z-index: 90;" data-in="0" data-out="81" data-start="0" data-duration="81" data-track-index="4" data-composition-src="compositions/dust_scene.html"></div>
+        <div id="host-dust" data-composition-id="dust_scene" class="composition-layer clip" style="mix-blend-mode: multiply; z-index: 90;" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="4" data-composition-src="compositions/dust_scene.html"></div>
+
+        <!-- 4.5 РИТМИЧЕСКИЕ ВСПЫШКИ (STROBE) -->
+        <div id="host-beats" data-composition-id="beats_scene" class="composition-layer clip" style="mix-blend-mode: multiply; z-index: 95; pointer-events: none;" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="45" data-composition-src="compositions/beats_scene.html"></div>
 
         <!-- 5. СУБТИТРЫ -->
-        <div id="host-subs" data-composition-id="subs_scene" class="composition-layer clip" style="z-index: 100;" data-in="0" data-out="81" data-start="0" data-duration="81" data-track-index="5" data-composition-src="compositions/subs_scene.html"></div>
+        <div id="host-subs" data-composition-id="subs_scene" class="composition-layer clip" style="z-index: 100;" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="5" data-composition-src="compositions/subs_scene.html"></div>
         
         <!-- 6. ЦВЕТОКОРРЕКЦИЯ (LUT) ИЗ CONFIG.JSON -->
-        <div id="host-color-grade" class="composition-layer clip" style="z-index: 9998; pointer-events: none; background-color: #100b20; mix-blend-mode: color; opacity: 0.5;" data-in="0" data-out="81" data-start="0" data-duration="81" data-track-index="6"></div>
+        <div id="host-color-grade" class="composition-layer clip" style="z-index: 9998; pointer-events: none; background-color: #100b20; mix-blend-mode: color; opacity: 0.5;" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="6"></div>
 
         
         <!-- ГЛОБАЛЬНЫЙ ФИЛЬТР (Intro (Пробуждение)) -->
         <div class="composition-layer clip" style="z-index: 9999; pointer-events: none; backdrop-filter: contrast(120%) brightness(96%) sepia(8%) hue-rotate(-2deg) saturate(105%); mix-blend-mode: multiply;" data-in="0" data-out="9.530" data-start="0.000" data-duration="9.530" data-track-index="10"></div>
 
         <!-- ГЛОБАЛЬНЫЙ ФИЛЬТР (Hook (В небе)) -->
-        <div class="composition-layer clip" style="z-index: 9999; pointer-events: none; backdrop-filter: contrast(120%) brightness(96%) sepia(8%) hue-rotate(-2deg) saturate(105%); mix-blend-mode: multiply;" data-in="0" data-out="5.000" data-start="39.000" data-duration="5.000" data-track-index="10"></div>
+        <div class="composition-layer clip" style="z-index: 9999; pointer-events: none; backdrop-filter: contrast(110%) brightness(105%) sepia(2%) saturate(100%); mix-blend-mode: multiply;" data-in="0" data-out="5.000" data-start="39.000" data-duration="5.000" data-track-index="10"></div>
 
         <!-- ГЛОБАЛЬНЫЙ ФИЛЬТР (Outro (Падение)) -->
-        <div class="composition-layer clip" style="z-index: 9999; pointer-events: none; backdrop-filter: contrast(120%) brightness(96%) sepia(8%) hue-rotate(-2deg) saturate(105%); mix-blend-mode: multiply;" data-in="0" data-out="18.010" data-start="59.990" data-duration="18.010" data-track-index="10"></div>
+        <div class="composition-layer clip" style="z-index: 9999; pointer-events: none; backdrop-filter: contrast(120%) brightness(96%) sepia(8%) hue-rotate(-2deg) saturate(105%); mix-blend-mode: multiply;" data-in="0" data-out="18.000" data-start="60.000" data-duration="18.000" data-track-index="10"></div>
 
     </div>
     <script>

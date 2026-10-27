@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 try {
-    console.log("=== СТАРТ ГЕНЕРАЦИИ INDEX.HTML (ФИЛЬТРЫ И ЦВЕТОКОРРЕКЦИЯ ИЗ БИБЛИОТЕКИ) ===");
+    console.log("=== СТАРТ ГЕНЕРАЦИИ INDEX.HTML (ВКЛЮЧАЯ СЛОЙ ВСПЫШЕК) ===");
     const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
     const director = JSON.parse(fs.readFileSync('director-config.json', 'utf8'));
     const library = JSON.parse(fs.readFileSync('library-config.json', 'utf8'));
@@ -13,9 +13,12 @@ try {
     const testStart = isTest ? config.testMode.start : 0;
     const testEnd = testStart + duration;
 
-    // --- ДОСТАЕМ ЦВЕТОКОРРЕКЦИЮ (LUT) ---
+    // --- ДОСТАЕМ ЦВЕТОКОРРЕКЦИЮ (LUT) И НАСТРОЙКИ ВСПЫШЕК ---
     const colorGradeKey = config.effects?.colorGrade || "none";
     const colorGradeCss = library.effectsPool?.colorGrading?.[colorGradeKey] || "display: none;";
+    
+    // Бленд-мод для вспышек (для тупого теста можно "normal", но скрипт прочитает из конфига)
+    const flashBlendMode = config.effects?.flashes?.blendMode || "normal";
 
     const structure = (director.songStructure || config.songStructure).sort((a, b) => a.time - b.time);
     const sectionRulesMap = director.sectionTypeRules || config.sectionTypeRules || {};
@@ -27,7 +30,6 @@ try {
         
         if (rules && rules.globalFilter) {
             const filterKey = rules.globalFilter;
-            // Ищем фильтр в библиотеке, если нет — оставляем как есть (защита от ошибок)
             const filterCss = library.effectsPool?.globalFilters?.[filterKey] || filterKey;
 
             const absStart = block.time;
@@ -75,6 +77,9 @@ try {
         <!-- 4. ТЕКСТУРА: Пыль, Шум, Виньетка (С MULTIPLY) -->
         <div id="host-dust" data-composition-id="dust_scene" class="composition-layer clip" style="mix-blend-mode: multiply; z-index: 90;" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="4" data-composition-src="compositions/dust_scene.html"></div>
 
+        <!-- 4.5 РИТМИЧЕСКИЕ ВСПЫШКИ (STROBE) -->
+        <div id="host-beats" data-composition-id="beats_scene" class="composition-layer clip" style="mix-blend-mode: ${flashBlendMode}; z-index: 95; pointer-events: none;" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="45" data-composition-src="compositions/beats_scene.html"></div>
+
         <!-- 5. СУБТИТРЫ -->
         <div id="host-subs" data-composition-id="subs_scene" class="composition-layer clip" style="z-index: 100;" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="5" data-composition-src="compositions/subs_scene.html"></div>
         
@@ -91,7 +96,7 @@ try {
 </html>`;
 
     fs.writeFileSync('index.html', html, 'utf8');
-    console.log(`✅ index.html успешно сгенерирован (Цветокоррекция: ${colorGradeKey}).`);
+    console.log(`✅ index.html успешно сгенерирован (Вспышки подключены).`);
 } catch (e) {
     console.error("❌ Ошибка в build_index.js:", e.message);
     process.exit(1);

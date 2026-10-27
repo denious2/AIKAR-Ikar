@@ -4,11 +4,11 @@ import path from 'path';
 // ==========================================
 // 🛠 НАСТРОЙКИ ТЕСТОВОГО СТЕНДА
 // ==========================================
-const TEST_MEDIA = "media/Scenes/prlx/i-15-prlx-b1.png"; // Путь к картинке или видео
+const TEST_MEDIA = "media/Scenes/prlx/i-14-prlx-b2.png"; // Путь к картинке или видео
 const DURATION = 4.0;                       // Длительность сцены в секундах
 const MOVEMENT = "slash_anime_flyby";                // Эффект движения
-const APPEARANCE = "soft_fade";             // Эффект появления (или "none")
-const COLOR_GRADE = "neon_noir";                 // Цветокоррекция (например, "neon_noir" или "none")
+const APPEARANCE = "hard_cut";             // Эффект появления (или "none")
+const COLOR_GRADE = "none";                 // Цветокоррекция (например, "neon_noir" или "none")
 const GLOBAL_FILTER = "none";  // Глобальный фильтр (или "none")
 
 try {
