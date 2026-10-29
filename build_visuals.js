@@ -128,7 +128,7 @@ try {
                 const baseOp = pool.baseOpacity !== undefined ? pool.baseOpacity : 0.8;
 
                 const mediaTag = file.toLowerCase().endsWith('.mp4')
-                ? `<video id="${mediaId}" src="../${file}" class="video-asset-layer clip" data-in="0" data-out="${slotDur.toFixed(3)}" data-start="${renderStart.toFixed(3)}" data-duration="${slotDur.toFixed(3)}" data-track-index="${pool.layerIndex}" style="mix-blend-mode: ${pool.blendMode || 'multiply'}; opacity: 0; animation: ${move} ${slotDur.toFixed(3)}s linear forwards, ${appear} ${slotDur.toFixed(3)}s linear forwards;" autoplay muted loop playsinline></video>`
+                ? `<video id="${mediaId}" src="../${file}" class="video-asset-layer clip" data-in="0" data-out="${slotDur.toFixed(3)}" data-start="${renderStart.toFixed(3)}" data-hf-media-start-basis="global" data-duration="${slotDur.toFixed(3)}" data-track-index="${pool.layerIndex}" style="mix-blend-mode: ${pool.blendMode || 'multiply'}; opacity: 0; animation: ${move} ${slotDur.toFixed(3)}s linear forwards, ${appear} ${slotDur.toFixed(3)}s linear forwards;" autoplay muted loop playsinline></video>`
                 : `<div id="${mediaId}" class="visual-layer clip" data-in="0" data-out="${slotDur.toFixed(3)}" data-start="${renderStart.toFixed(3)}" data-duration="${slotDur.toFixed(3)}" data-track-index="${pool.layerIndex}" style="background-image: url('../${file}'); mix-blend-mode: ${pool.blendMode || 'multiply'}; opacity: 0; animation: ${move} ${slotDur.toFixed(3)}s linear forwards, ${appear} ${slotDur.toFixed(3)}s linear forwards;"></div>`;
 
                 const htmlChunk = `\n<div id="${wrapperId}" class="anim-wrapper" style="opacity: ${baseOp};">${mediaTag}</div>`;

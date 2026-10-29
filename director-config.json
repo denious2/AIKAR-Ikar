@@ -15,65 +15,51 @@
     { "time": 39.0, "name": "Hook (В небе)", "type": "hook" },    
     { "time": 44.00, "name": "Chorus (Полет)", "type": "chorus" },
     { "time": 60.00, "name": "Outro (Падение)", "type": "outro" },
-    { "time": 78.00, "name": "Лого (Копирайты)", "type": "copyright" }	
+    { "time": 74.00, "name": "Лого (Копирайты)", "type": "copyright" }    
   ],
   "sectionTypeRules": {
-    "intro": 	{ "allowedLayers": [1, 2, 3, 6], "blackout": false, "globalFilter": "color_burn_middle" },
-    "verse": 	{ "allowedLayers": [1, 2, 3, 6, 7], "blackout": false },
-    "hook": 	{ "allowedLayers": [4], "blackout": false, "globalFilter": "color_burn_low" },
-    "chorus": 	{ "allowedLayers": [1, 2, 3, 6, 7], "blackout": false },
-    "outro": 	{  "allowedLayers": [2, 6, 7], "blackout": false, "globalFilter": "color_burn_middle" },
-    "copyright": { "allowedLayers": [5], "blackout": false }	
+    "intro":     { "allowedLayers": [1, 2, 3, 6], "blackout": false, "globalFilter": "color_burn_middle"},
+    "verse":     { "allowedLayers": [1, 2, 3, 6, 7], "blackout": false, "textStyle": "retro_box" },
+    "hook":      { "allowedLayers": [4], "blackout": false, "globalFilter": "color_burn_low" },
+    "chorus":    { "allowedLayers": [1, 2, 3, 6, 7], "blackout": false, "textStyle": "lighting_box" },
+    "outro":     { "allowedLayers": [2, 6, 7], "blackout": false, "globalFilter": "color_burn_middle" },
+    "copyright": { "allowedLayers": [5], "blackout": false }    
   },
-"directorOverrides": {
-    "_hint": "Здесь можно жестко привязать директивы к конкретным файлам, перебивая например, рандом",
+  "accents": {
+    "enabled": true,
+    "sourceFile": "accents.json",
+    "shakes": {
+      "enabled": true,
+      "duration": 0.25,
+      "pool": ["capcut_shake_v1", "none", "impact_zoom", "none", "micro_seismic", "none"]
+    },
+    "videoGlitches": {
+      "enabled": true,
+      "duration": 0.6,
+      "file": "media/sfx/accents/glitch-vert-12.mp4",
+      "blendMode": "screen",
+      "slices": 8,
+      "sequence": [2, 3, "none", "none", 5, 8, "none", 6, 12, "none", 3],
+      "style": "purple_neon"
+    }
+  },
+  "directorOverrides": {
+    "_hint": "Здесь можно жестко привязать директивы к конкретным файлам",
     "files": {
-      "media/Scenes/i-0015.mp4": {
-        "movement": "cinematic_zoom_in_shake",
-        "appearance": "soft_fade"		
-      },		
-      "media/Scenes/i-05.png": {
-        "movement": "micro_jitter",
-        "appearance": "hard_cut"
-      },
-      "media/Scenes/i-0013.mp4": {
-        "movement": "cinematic_zoom_in_shake",
-        "appearance": "hard_cut"
-      },
-      "media/Scenes/i-08.mp4": {
-        "entrance": "hard_cut",
-        "exit": "burn_out"
-      },	  
-      "media/Scenes/i-12.png": {
-        "movement": "cinematic_zoom_in_shake"
-      },
-      "media/Scenes/prlx/i-12-prlx-b1.png": {
-        "movement": "slide_run_right_heavy"
-      },	  
-	  "media/Scenes/i-13.mp4": {
-        "appearance": "soft_fade"
-      },
-      "media/Scenes/prlx/i-14-prlx-b1.png": {
-        "movement": "downfall"
-      },
-      "media/Scenes/prlx/i-14-prlx-b2.png": {
-        "movement": "chaotic_expanding_jitter"		
-      },
-      "media/Scenes/prlx/i-15-prlx-b1.png": {
-        "movement": "slash_anime_flyby"
-      },	  
-      "media/Scenes/prlx/i-15-prlx-b2.png": {
-        "movement": "downfall"
-      },
-      "media/Scenes/prlx/i-16.png": {
-        "movement": "downfall_with_spin"
-      },	  
-      "media/Scenes/prlx/i-16-prlx-b1.png": {
-        "movement": "downfall"
-      },
-      "media/Scenes/fly/pl12.mp4": {
-        "appearance": "soft_fade"
-      } 
+      "media/Scenes/i-0015.mp4": { "movement": "cinematic_zoom_in_shake", "appearance": "soft_fade" },
+      "media/Scenes/i-05.png": { "movement": "micro_jitter", "appearance": "hard_cut" },
+      "media/Scenes/i-0013.mp4": { "movement": "cinematic_zoom_in_shake", "appearance": "hard_cut" },
+      "media/Scenes/i-08.mp4": { "entrance": "hard_cut", "exit": "burn_out" },      
+      "media/Scenes/i-12.png": { "movement": "cinematic_zoom_in_shake" },
+      "media/Scenes/prlx/i-12-prlx-b1.png": { "movement": "slide_run_right_heavy" },      
+      "media/Scenes/i-13.mp4": { "appearance": "soft_fade" },
+      "media/Scenes/prlx/i-14-prlx-b1.png": { "movement": "downfall" },
+      "media/Scenes/prlx/i-14-prlx-b2.png": { "movement": "chaotic_expanding_jitter" },        
+      "media/Scenes/prlx/i-15-prlx-b1.png": { "movement": "slash_anime_flyby" },      
+      "media/Scenes/prlx/i-15-prlx-b2.png": { "movement": "downfall" },
+      "media/Scenes/prlx/i-16.png": { "movement": "downfall_with_spin" },      
+      "media/Scenes/prlx/i-16-prlx-b1.png": { "movement": "downfall" },
+      "media/Scenes/fly/pl12.mp4": { "appearance": "soft_fade" } 
     }
   },
   "assetPools": {
@@ -84,8 +70,7 @@
       "path": "media/Scenes",
       "blendMode": "multiply",
       "baseOpacity": 1.0,
-      "allowedMovements": ["fast_dolly_in", "aggressive_shake", "glitch_pan_left", 
-	  "glitch_pan_right", "rapid_pulse", "cinematic_zoom_in_shake"],
+      "allowedMovements": ["fast_dolly_in", "aggressive_shake", "glitch_pan_left", "glitch_pan_right", "rapid_pulse", "cinematic_zoom_in_shake"],
       "allowedMovements_b1": ["slow_pan_left", "slow_pan_right", "micro_jitter"],
       "allowedMovements_b2": ["rapid_pulse", "subtle_zoom"],
       "defaultAppearance": "glitch_snap"
@@ -131,7 +116,7 @@
       "baseOpacity": 0.2,
       "allowedMovements": ["none"],
       "defaultAppearance": "fade_in_base"
-    },	
+    },    
     "storm_transitions": {
       "enabled": true,
       "class": "transition",

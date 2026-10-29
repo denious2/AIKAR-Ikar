@@ -364,7 +364,7 @@ function log(msg) {
                 const isMediaVideo = layer.path.toLowerCase().endsWith('.mp4');
                 
                 if (isMediaVideo) {
-                    groupHTML += `    <video id="vid-${activePoolName}-${imageIndex}-${layer.id}" src="../${layer.path}" class="video-layer clip" data-in="0" data-out="${durStr}" data-start="${startStr}" data-duration="${durStr}" data-track-index="${trackIdx}" style="z-index: ${layer.zIndex}; mix-blend-mode: ${currentBlend}; --base-opacity: ${baseOpacity}; ${opacityCss} ${animCss}" autoplay muted playsinline></video>\n`;
+                    groupHTML += `    <video id="vid-${activePoolName}-${imageIndex}-${layer.id}" src="../${layer.path}" class="video-layer clip" data-in="0" data-out="${durStr}" data-start="${startStr}" data-hf-media-start-basis="global" data-duration="${durStr}" data-track-index="${trackIdx}" style="z-index: ${layer.zIndex}; mix-blend-mode: ${currentBlend}; --base-opacity: ${baseOpacity}; ${opacityCss} ${animCss}" autoplay muted playsinline></video>\n`;
                 } else {
                     groupHTML += `    <div id="img-${activePoolName}-${imageIndex}-${layer.id}" class="image-layer clip" data-in="0" data-out="${durStr}" data-start="${startStr}" data-duration="${durStr}" data-track-index="${trackIdx}" style="z-index: ${layer.zIndex}; background-image: url('../${layer.path}'); mix-blend-mode: ${currentBlend}; --base-opacity: ${baseOpacity}; ${opacityCss} ${animCss}"></div>\n`;
                 }

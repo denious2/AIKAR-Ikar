@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 try {
-    console.log("=== СТАРТ СБОРКИ СУБТИТРОВ (ЖЕСТКИЙ КОНТРОЛЬ ОШИБОК + БИБЛИОТЕКА) ===");
+    console.log("=== СТАРТ СБОРКИ СУБТИТРОВ (ДИНАМИЧЕСКИЕ СЕКЦИИ + ГЛОБАЛЬНЫЙ ШРИФТ) ===");
     
     const configPath = path.join(process.cwd(), 'config.json');
     const directorPath = path.join(process.cwd(), 'director-config.json');
@@ -31,7 +31,7 @@ try {
     let svgFiltersHTML = "";
     let defaultTextStyle = "retro_box"; // Хардкодный fallback на всякий случай
     
-    // ИЗМЕНЕНИЕ: Читаем стили из библиотеки, а не из директора
+    // Читаем стили из библиотеки
     if (library.effectsPool) {
         if (library.effectsPool.fonts) {
             Object.values(library.effectsPool.fonts).forEach(font => cssLibrary += `${font}\n`);
@@ -57,6 +57,35 @@ try {
         if (library.effectsPool.svgFilters) {
             Object.values(library.effectsPool.svgFilters).forEach(svg => svgFiltersHTML += `${svg}\n`);
         }
+    }
+
+    // --- ГЛОБАЛЬНЫЙ ШРИФТ ИЗ CONFIG.JSON ---
+    let globalFontCss = "";
+    if (config.effects?.subtitles?.useCustomFont && config.effects?.subtitles?.fontFamily) {
+        globalFontCss = `
+        .subtitle-wrapper * { 
+            font-family: ${config.effects.subtitles.fontFamily} !important; 
+        }`;
+    }
+
+    // --- ПОДГОТОВКА СТРУКТУРЫ ДЛЯ ДИНАМИЧЕСКИХ СТИЛЕЙ ---
+    const structure = (director.songStructure || config.songStructure).sort((a, b) => a.time - b.time);
+    const rulesMap = director.sectionTypeRules || config.sectionTypeRules || {};
+
+    // Функция поиска стиля для конкретного таймкода
+    function getStyleForTime(time) {
+        let currentSection = structure[0];
+        for (let i = 0; i < structure.length; i++) {
+            if (time >= structure[i].time) {
+                currentSection = structure[i];
+            } else {
+                break;
+            }
+        }
+        const rule = rulesMap[currentSection?.type];
+        const override = config.effects && config.effects.subtitleStyle;
+        const styleKey = (rule && rule.textStyle) ? rule.textStyle : (override || defaultTextStyle);
+        return `subtitle-style-${styleKey}`;
     }
 
     let subsHTML = "";
@@ -88,12 +117,8 @@ try {
                 const text = lines.slice(timeIndex + 1).join('<br>');
                 const subId = `sub-clip-${subIndex}`;
                 
-                // Безопасное определение стиля без ?.
-                let overrideStyle = null;
-                if (config.effects && config.effects.subtitleStyle) {
-                    overrideStyle = config.effects.subtitleStyle;
-                }
-                const activeStyle = `subtitle-style-${overrideStyle || defaultTextStyle}`;
+                // Динамически получаем стиль по времени начала фразы
+                const activeStyle = getStyleForTime(absStart);
 
                 subsHTML += `
 <div id="${subId}" class="clip subtitle-wrapper" data-in="${renderStart.toFixed(3)}" data-out="${renderEnd.toFixed(3)}" data-start="${renderStart.toFixed(3)}" data-duration="${duration.toFixed(3)}" data-track-index="6">
@@ -134,6 +159,7 @@ try {
         display: inline;
     }
     
+    ${globalFontCss}
     ${cssLibrary}
 </style>
 </head>
@@ -154,7 +180,7 @@ ${subsHTML}
 
     if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
     fs.writeFileSync(path.join(compDir, 'subs_scene.html'), html, 'utf8');
-    console.log("✅ УСПЕХ! HTML файл субтитров перезаписан.");
+    console.log("✅ УСПЕХ! HTML файл субтитров перезаписан (инъекция глобального шрифта и динамические секции).");
 } catch (e) {
     console.error("❌ ОШИБКА В BUILD_SUBS.JS:", e.message);
     process.exit(1); 

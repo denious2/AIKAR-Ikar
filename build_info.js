@@ -64,6 +64,25 @@ function log(msg) {
         } catch (e) {}
 
         // ====================================================================
+        // ЗАГРУЗКА АКЦЕНТОВ ИЗ НОВОЙ АРХИТЕКТУРЫ
+        // ====================================================================
+        let accentsData = [];
+        const accentsCfg = director.accents || { enabled: false };
+        
+        if (accentsCfg.enabled) {
+            const sourceFile = accentsCfg.sourceFile || 'accents.json';
+            try {
+                if (fs.existsSync(path.join(rootDir, sourceFile))) {
+                    accentsData = JSON.parse(fs.readFileSync(path.join(rootDir, sourceFile), 'utf8')).accents || [];
+                }
+            } catch (e) {}
+        } else {
+            log("⚠️ ВНИМАНИЕ: Блок 'accents' выключен или не найден в director-config.json");
+        }
+        
+        const activeAccents = accentsData.filter(time => isTest ? (time >= testStart && time <= testEnd) : (time <= totalDuration));
+
+        // ====================================================================
         // 1. ЗАГРУЗКА ВСЕХ АССЕТОВ (С РАСЧЕТОМ ДЛИТЕЛЬНОСТИ ВИДЕО)
         // ====================================================================
         const loadedAssets = {};
@@ -108,6 +127,33 @@ function log(msg) {
         }
 
         let timelineEvents = [];
+
+        // ====================================================================
+        // ДОБАВЛЯЕМ АКЦЕНТЫ В ТАЙМЛАЙН
+        // ====================================================================
+        if (accentsCfg.enabled && activeAccents.length > 0) {
+            log(`⚡ Найдено глитч-акцентов для таймлайна: ${activeAccents.length}`);
+            const hasShakes = accentsCfg.shakes?.enabled && Array.isArray(accentsCfg.shakes?.pool);
+            const hasVideo = accentsCfg.videoGlitches?.enabled;
+            
+            activeAccents.forEach((time, index) => {
+                let desc = [];
+                if (hasShakes) {
+                    const pool = accentsCfg.shakes.pool;
+                    desc.push(`Тряска: ${pool[index % pool.length]}`);
+                }
+                if (hasVideo) {
+                    desc.push(`Глитч-вспышка (${accentsCfg.videoGlitches.blendMode})`);
+                }
+                
+                timelineEvents.push({
+                    time: time,
+                    isAccent: true, 
+                    title: `⚡ АКЦЕНТ (ГЛОБАЛЬНЫЙ)`,
+                    desc: desc.join(' | ')
+                });
+            });
+        }
 
         // ====================================================================
         // А. СЕКЦИИ И ЭФФЕКТЫ (АТМОСФЕРА)
@@ -306,7 +352,8 @@ function log(msg) {
                 duration: duration,
                 isParallaxGroup: parallaxDetails.length > 1,
                 parallaxLayers: parallaxDetails,
-                magnetLog: magnetLog
+                magnetLog: magnetLog,
+                move: baseMove // <--- ИСПРАВЛЕНИЕ: Передаем движение для рендера строки в лог
             });
 
             currentTime += currentImgDuration;
@@ -320,6 +367,8 @@ function log(msg) {
             if (Math.abs(a.time - b.time) > 0.001) return a.time - b.time;
             if (a.isSection) return -1;
             if (b.isSection) return 1;
+            if (a.isAccent) return -1; // Акценты идут сразу после секций, перед слоями
+            if (b.isAccent) return 1;
             return a.layer - b.layer;
         });
 
@@ -342,6 +391,10 @@ function log(msg) {
 
             if (ev.isSection) {
                 outputText += `\n[ ${ev.title} ]\n`;
+                outputText += `  > ${ev.desc}\n\n`;
+                currentLayer = null;
+            } else if (ev.isAccent) {
+                outputText += `\n${ev.title}\n`;
                 outputText += `  > ${ev.desc}\n\n`;
                 currentLayer = null;
             } else {

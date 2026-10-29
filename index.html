@@ -7,44 +7,120 @@
         body { margin: 0; background: #fdfdfd; overflow: hidden; }
         #root { position: absolute; width: 1080px; height: 1920px; overflow: hidden; }
         .composition-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        @keyframes masterAccentShake {
+  0% { transform: translate(0px, 0px) scale(1); }
+  1.7628% { transform: translate(0px, 0px) scale(1); }
+  1.7756% { transform: translate(0px, 0px) rotate(0deg) scale(1.03); }
+  1.8397% { transform: translate(-8px, 5px) rotate(-1deg) scale(1.03); }
+  1.9038% { transform: translate(6px, -4px) rotate(0.5deg) scale(1.03); }
+  1.9679% { transform: translate(-4px, -6px) rotate(-0.5deg) scale(1.03); }
+  2.0321% { transform: translate(3px, 4px) rotate(1deg) scale(1.03); }
+  2.0962% { transform: translate(0px, 0px) rotate(0deg) scale(1.0); }
+  4.6923% { transform: translate(0px, 0px) scale(1); }
+  4.7051% { transform: scale(1.02); }
+  4.7372% { transform: scale(1.15) translate(0px, -5px); }
+  4.8333% { transform: scale(1.1) translate(0px, 0px); }
+  5.0256% { transform: scale(1.0); }
+  6.3603% { transform: translate(0px, 0px) scale(1); }
+  6.3731% { transform: translate(0px, 0px) scale(1.02); }
+  6.4212% { transform: translate(2px, 3px) scale(1.02); }
+  6.4692% { transform: translate(-3px, -2px) scale(1.02); }
+  6.5173% { transform: translate(4px, 1px) scale(1.02); }
+  6.5654% { transform: translate(-2px, -4px) scale(1.02); }
+  6.6135% { transform: translate(3px, 2px) scale(1.02); }
+  6.6936% { transform: translate(0px, 0px) scale(1.0); }
+  70.0987% { transform: translate(0px, 0px) scale(1); }
+  70.1115% { transform: translate(0px, 0px) rotate(0deg) scale(1.03); }
+  70.1756% { transform: translate(-8px, 5px) rotate(-1deg) scale(1.03); }
+  70.2397% { transform: translate(6px, -4px) rotate(0.5deg) scale(1.03); }
+  70.3038% { transform: translate(-4px, -6px) rotate(-0.5deg) scale(1.03); }
+  70.3679% { transform: translate(3px, 4px) rotate(1deg) scale(1.03); }
+  70.4321% { transform: translate(0px, 0px) rotate(0deg) scale(1.0); }
+  77.2987% { transform: translate(0px, 0px) scale(1); }
+  77.3115% { transform: scale(1.02); }
+  77.3436% { transform: scale(1.15) translate(0px, -5px); }
+  77.4397% { transform: scale(1.1) translate(0px, 0px); }
+  77.6321% { transform: scale(1.0); }
+  81.5641% { transform: translate(0px, 0px) scale(1); }
+  81.5769% { transform: translate(0px, 0px) scale(1.02); }
+  81.6250% { transform: translate(2px, 3px) scale(1.02); }
+  81.6731% { transform: translate(-3px, -2px) scale(1.02); }
+  81.7212% { transform: translate(4px, 1px) scale(1.02); }
+  81.7692% { transform: translate(-2px, -4px) scale(1.02); }
+  81.8173% { transform: translate(3px, 2px) scale(1.02); }
+  81.8974% { transform: translate(0px, 0px) scale(1.0); }
+  83.8615% { transform: translate(0px, 0px) scale(1); }
+  83.8744% { transform: translate(0px, 0px) rotate(0deg) scale(1.03); }
+  83.9385% { transform: translate(-8px, 5px) rotate(-1deg) scale(1.03); }
+  84.0026% { transform: translate(6px, -4px) rotate(0.5deg) scale(1.03); }
+  84.0667% { transform: translate(-4px, -6px) rotate(-0.5deg) scale(1.03); }
+  84.1308% { transform: translate(3px, 4px) rotate(1deg) scale(1.03); }
+  84.1949% { transform: translate(0px, 0px) rotate(0deg) scale(1.0); }
+  88.4538% { transform: translate(0px, 0px) scale(1); }
+  88.4667% { transform: scale(1.02); }
+  88.4987% { transform: scale(1.15) translate(0px, -5px); }
+  88.5949% { transform: scale(1.1) translate(0px, 0px); }
+  88.7872% { transform: scale(1.0); }
+  90.7769% { transform: translate(0px, 0px) scale(1); }
+  90.7897% { transform: translate(0px, 0px) scale(1.02); }
+  90.8378% { transform: translate(2px, 3px) scale(1.02); }
+  90.8859% { transform: translate(-3px, -2px) scale(1.02); }
+  90.9340% { transform: translate(4px, 1px) scale(1.02); }
+  90.9821% { transform: translate(-2px, -4px) scale(1.02); }
+  91.0301% { transform: translate(3px, 2px) scale(1.02); }
+  91.1103% { transform: translate(0px, 0px) scale(1.0); }
+  93.4115% { transform: translate(0px, 0px) scale(1); }
+  93.4244% { transform: translate(0px, 0px) rotate(0deg) scale(1.03); }
+  93.4885% { transform: translate(-8px, 5px) rotate(-1deg) scale(1.03); }
+  93.5526% { transform: translate(6px, -4px) rotate(0.5deg) scale(1.03); }
+  93.6167% { transform: translate(-4px, -6px) rotate(-0.5deg) scale(1.03); }
+  93.6808% { transform: translate(3px, 4px) rotate(1deg) scale(1.03); }
+  93.7449% { transform: translate(0px, 0px) rotate(0deg) scale(1.0); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+.global-shake-active { animation: masterAccentShake 78s linear forwards; }
+
     </style>
 </head>
 <body>
-    <div id="root" data-composition-id="root_scene" data-width="1080" data-height="1920" data-duration="82">
+    <div id="root" data-composition-id="root_scene" data-width="1080" data-height="1920" data-duration="78">
         
         <!-- 0. АУДИО ТРЕК (Слой -1) -->
-        <div id="host-audio" data-composition-id="audio_scene" class="composition-layer clip" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="-1" data-composition-src="compositions/audio_scene.html"></div>
+        <div id="host-audio" data-composition-id="audio_scene" class="composition-layer clip" data-in="0" data-out="78" data-start="0" data-duration="78" data-track-index="-1" data-composition-src="compositions/audio_scene.html"></div>
 
         <!-- 1. ФОНОВЫЕ ЭФФЕКТЫ -->
-        <div id="host-visuals-bg" data-composition-id="visuals_bg_scene" class="composition-layer clip" style="mix-blend-mode: multiply; z-index: 10;" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="1" data-composition-src="compositions/visuals_bg_scene.html"></div>
+        <div id="host-visuals-bg" data-composition-id="visuals_bg_scene" class="composition-layer clip global-shake-active" style="mix-blend-mode: multiply; z-index: 10;" data-in="0" data-out="78" data-start="0" data-duration="78" data-track-index="1" data-composition-src="compositions/visuals_bg_scene.html"></div>
         
         <!-- 2. ГЛАВНЫЕ СЮЖЕТЫ -->
-        <div id="host-images" data-composition-id="images_scene" class="composition-layer clip" style="z-index: 20;" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="2" data-composition-src="compositions/images_scene.html"></div>
+        <div id="host-images" data-composition-id="images_scene" class="composition-layer clip global-shake-active" style="z-index: 20;" data-in="0" data-out="78" data-start="0" data-duration="78" data-track-index="2" data-composition-src="compositions/images_scene.html"></div>
         
-        <!-- 3. ПЕРЕДНИЕ ЭФФЕКТЫ (Ленты и Слой 7) -->
-        <div id="host-visuals-fg" data-composition-id="visuals_fg_scene" class="composition-layer clip" style="mix-blend-mode: multiply; z-index: 30;" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="3" data-composition-src="compositions/visuals_fg_scene.html"></div>
+        <!-- 3. ПЕРЕДНИЕ ЭФФЕКТЫ -->
+        <div id="host-visuals-fg" data-composition-id="visuals_fg_scene" class="composition-layer clip global-shake-active" style="mix-blend-mode: multiply; z-index: 30;" data-in="0" data-out="78" data-start="0" data-duration="78" data-track-index="3" data-composition-src="compositions/visuals_fg_scene.html"></div>
         
-        <!-- 4. ТЕКСТУРА: Пыль, Шум, Виньетка (С MULTIPLY) -->
-        <div id="host-dust" data-composition-id="dust_scene" class="composition-layer clip" style="mix-blend-mode: multiply; z-index: 90;" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="4" data-composition-src="compositions/dust_scene.html"></div>
+        <!-- 4. ТЕКСТУРА: Пыль, Шум (С MULTIPLY) -->
+        <div id="host-dust" data-composition-id="dust_scene" class="composition-layer clip global-shake-active" style="mix-blend-mode: multiply; z-index: 90;" data-in="0" data-out="78" data-start="0" data-duration="78" data-track-index="4" data-composition-src="compositions/dust_scene.html"></div>
 
         <!-- 4.5 РИТМИЧЕСКИЕ ВСПЫШКИ (STROBE) -->
-        <div id="host-beats" data-composition-id="beats_scene" class="composition-layer clip" style="mix-blend-mode: multiply; z-index: 95; pointer-events: none;" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="45" data-composition-src="compositions/beats_scene.html"></div>
+        <div id="host-beats" data-composition-id="beats_scene" class="composition-layer clip" style="mix-blend-mode: multiply; z-index: 95; pointer-events: none;" data-in="0" data-out="78" data-start="0" data-duration="78" data-track-index="45" data-composition-src="compositions/beats_scene.html"></div>
 
-        <!-- 5. СУБТИТРЫ -->
-        <div id="host-subs" data-composition-id="subs_scene" class="composition-layer clip" style="z-index: 100;" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="5" data-composition-src="compositions/subs_scene.html"></div>
+        <!-- 5. СУБТИТРЫ (Изолированы от тряски) -->
+        <div id="host-subs" data-composition-id="subs_scene" class="composition-layer clip" style="z-index: 100;" data-in="0" data-out="78" data-start="0" data-duration="78" data-track-index="5" data-composition-src="compositions/subs_scene.html"></div>
         
-        <!-- 6. ЦВЕТОКОРРЕКЦИЯ (LUT) ИЗ CONFIG.JSON -->
-        <div id="host-color-grade" class="composition-layer clip" style="z-index: 9998; pointer-events: none; background-color: #100b20; mix-blend-mode: color; opacity: 0.5;" data-in="0" data-out="82" data-start="0" data-duration="82" data-track-index="6"></div>
+        <!-- 6. ЦВЕТОКОРРЕКЦИЯ (LUT) -->
+        <div id="host-color-grade" class="composition-layer clip" style="z-index: 9998; pointer-events: none; background-color: #100b20; mix-blend-mode: color; opacity: 0.5;" data-in="0" data-out="78" data-start="0" data-duration="78" data-track-index="6"></div>
 
+        
+        <!-- 4.6 АКЦЕНТЫ (ВИДЕО-ГЛИТЧИ) -->
+        <div id="host-accents" data-composition-id="accents_scene" class="composition-layer clip" style="z-index: 9999; pointer-events: none; mix-blend-mode: screen;" data-in="0" data-out="78" data-start="0" data-duration="78" data-track-index="46" data-composition-src="compositions/accents_scene.html"></div>
         
         <!-- ГЛОБАЛЬНЫЙ ФИЛЬТР (Intro (Пробуждение)) -->
-        <div class="composition-layer clip" style="z-index: 9999; pointer-events: none; backdrop-filter: contrast(120%) brightness(96%) sepia(8%) hue-rotate(-2deg) saturate(105%); mix-blend-mode: multiply;" data-in="0" data-out="9.530" data-start="0.000" data-duration="9.530" data-track-index="10"></div>
+        <div id="global-filter-0" class="composition-layer clip" style="z-index: 9999; pointer-events: none; backdrop-filter: contrast(120%) brightness(96%) sepia(8%) hue-rotate(-2deg) saturate(105%); mix-blend-mode: multiply;" data-in="0" data-out="9.530" data-start="0.000" data-duration="9.530" data-track-index="10"></div>
 
         <!-- ГЛОБАЛЬНЫЙ ФИЛЬТР (Hook (В небе)) -->
-        <div class="composition-layer clip" style="z-index: 9999; pointer-events: none; backdrop-filter: contrast(110%) brightness(105%) sepia(2%) saturate(100%); mix-blend-mode: multiply;" data-in="0" data-out="5.000" data-start="39.000" data-duration="5.000" data-track-index="10"></div>
+        <div id="global-filter-2" class="composition-layer clip" style="z-index: 9999; pointer-events: none; backdrop-filter: contrast(110%) brightness(105%) sepia(2%) saturate(100%); mix-blend-mode: multiply;" data-in="0" data-out="5.000" data-start="39.000" data-duration="5.000" data-track-index="10"></div>
 
         <!-- ГЛОБАЛЬНЫЙ ФИЛЬТР (Outro (Падение)) -->
-        <div class="composition-layer clip" style="z-index: 9999; pointer-events: none; backdrop-filter: contrast(120%) brightness(96%) sepia(8%) hue-rotate(-2deg) saturate(105%); mix-blend-mode: multiply;" data-in="0" data-out="18.000" data-start="60.000" data-duration="18.000" data-track-index="10"></div>
+        <div id="global-filter-4" class="composition-layer clip" style="z-index: 9999; pointer-events: none; backdrop-filter: contrast(120%) brightness(96%) sepia(8%) hue-rotate(-2deg) saturate(105%); mix-blend-mode: multiply;" data-in="0" data-out="14.000" data-start="60.000" data-duration="14.000" data-track-index="10"></div>
 
     </div>
     <script>

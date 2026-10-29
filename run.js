@@ -11,7 +11,12 @@ const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 const resW = config.project.resolution.width;
 const resH = config.project.resolution.height;
 const safeProjectName = config.project.name.replace(/[:\\/*?"<>|]/g, '-');
-const outputFileName = `${safeProjectName}_${resW}x${resH}.mp4`; 
+
+// Проверяем тестовый режим и меняем имя файла
+const isTest = config.testMode && config.testMode.enabled;
+const outputFileName = isTest 
+    ? `${safeProjectName}_TEST_${resW}x${resH}.mp4` 
+    : `${safeProjectName}_${resW}x${resH}.mp4`; 
 
 // Читаем настройки рендера
 const hideDebugLogs = config.render?.hideDebugLogs !== false;
@@ -21,6 +26,7 @@ const renderFps = config.render?.fps;         // например, 60
 const scripts = [
     'build_audio.js',
     'build_beats.js',      
+    'build_accents.js',      
     'build_images.js',      
     'build_visuals.js',   
     'build_dust.js',       
