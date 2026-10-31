@@ -1,11 +1,15 @@
 import fs from 'fs';
 import path from 'path';
+import { loadConfigs } from '../config_loader.js';
 
 try {
-    console.log("=== СТАРТ ГЕНЕРАЦИИ INDEX.HTML (МЯГКИЙ SHADOW CRUSH И КИНЕТИЧЕСКИЙ БАС) ===");
-    const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
-    const director = JSON.parse(fs.readFileSync('director-config.json', 'utf8'));
-    const library = JSON.parse(fs.readFileSync('library-config.json', 'utf8'));
+    console.log("=== СТАРТ ГЕНЕРАЦИИ INDEX.HTML (ДИНАМИЧЕСКИЕ AUDIO REACTORS) ===");
+    
+    // Задаем строгий корень проекта
+    const rootDir = process.cwd();
+
+    // Читаем конфиги через утилиту из папки configs/
+    const { config, director, library } = loadConfigs(rootDir);
     
     const resW = config.project.resolution.width;
     const resH = config.project.resolution.height;
@@ -13,13 +17,15 @@ try {
     const duration = isTest ? config.testMode.duration : config.project.totalDuration;
     const testStart = isTest ? config.testMode.start : 0;
     const testEnd = testStart + duration;
-    const compDir = path.join(process.cwd(), 'compositions');
+    
+    // Путь к папке compositions
+    const compDir = path.join(rootDir, 'compositions');
 
     // --- ЧТЕНИЕ ОГИБАЮЩЕЙ БАСА (АУДИО-РЕАКТИВНОСТЬ) ---
     let bassCss = '';
     let rootBassAnimation = '';
     try {
-        const bassPath = path.join(process.cwd(), 'bass.json');
+        const bassPath = path.join(rootDir, 'bass.json');
         if (fs.existsSync(bassPath)) {
             const bassData = JSON.parse(fs.readFileSync(bassPath, 'utf8'));
             const frames = bassData.frames;
@@ -84,6 +90,23 @@ try {
         ? `\n        <!-- 4.6 АКЦЕНТЫ (ВИДЕО-ГЛИТЧИ) -->\n        <div id="host-accents" data-composition-id="accents_scene" class="composition-layer clip" style="z-index: 9999; pointer-events: none; mix-blend-mode: ${accentsBlendMode};" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="46" data-composition-src="compositions/accents_scene.html"></div>` 
         : '';
 
+    // --- ГЕНЕРАЦИЯ AUDIO REACTORS ИЗ JSON ---
+    let reactorsCss = '';
+    if (director.audioReactors && director.audioReactors.enabled) {
+        reactorsCss += `/* === AUDIO REACTORS (DYNAMIC) === */\n`;
+        director.audioReactors.nodes.forEach(node => {
+            reactorsCss += `        ${node.target} {\n`;
+            if (node.cssProperty && node.formula) {
+                reactorsCss += `            ${node.cssProperty}: ${node.formula};\n`;
+            }
+            if (node.transition) {
+                reactorsCss += `            transition: ${node.transition};\n`;
+            }
+            reactorsCss += `        }\n`;
+        });
+        console.log(`🎛️ Загружено динамических аудио-реакторов: ${director.audioReactors.nodes.length}`);
+    }
+
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -98,32 +121,14 @@ try {
         #root { position: absolute; width: ${resW}px; height: ${resH}px; overflow: hidden; }
         .composition-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         
-        /* ========================================= */
-        /* SHADOW CRUSH (МЯГКИЕ ТЕНИ ПОД БАС)        */
-        /* ========================================= */
+        /* БАЗОВЫЕ СТИЛИ СЛОЕВ (БЕЗ ХАРДКОДА РЕАКЦИЙ) */
         #shadow-crush-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #000000;
-            mix-blend-mode: multiply; 
-            /* >>> ИСПРАВЛЕНО: Приглушили силу затемнения с 0.75 до 0.4 <<< */
-            opacity: calc(var(--bass) * 0.4); 
-            pointer-events: none;
-            /* Выше фона и картинок, но ниже субтитров и цветокора */
-            z-index: 9950; 
-            /* Резкое появление и тяжелое, вязкое затухание (0.3s) */
-            transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000000; mix-blend-mode: multiply; pointer-events: none; z-index: 9950; 
         }
+        #host-subs { text-align: center; }
 
-        /* ========================================= */
-        /* ТИПОГРАФИЧЕСКИЙ БАС (ГЛОБАЛЬНЫЙ КОНТЕЙНЕР)*/
-        /* ========================================= */
-        #host-subs {
-            transform: scale(calc(1 + var(--bass) * 0.04));
-            transition: transform 0.05s ease-out;
-            text-align: center; 
-        }
-
+        ${reactorsCss}
         ${cameraShakeCss}
         ${bassCss}
     </style>
@@ -168,8 +173,11 @@ try {
 </body>
 </html>`;
 
-    fs.writeFileSync('index.html', html, 'utf8');
-    console.log(`✅ index.html успешно сгенерирован (Внедрен мягкий Shadow Crush и Kinetic Anchor).`);
+    // Сохраняем строго в корень проекта
+    const indexPath = path.join(rootDir, 'index.html');
+    fs.writeFileSync(indexPath, html, 'utf8');
+    
+    console.log(`✅ ${indexPath} успешно сгенерирован (Внедрены динамические Audio Reactors).`);
 } catch (e) {
     console.error("❌ Ошибка в build_index.js:", e.message);
     process.exit(1);

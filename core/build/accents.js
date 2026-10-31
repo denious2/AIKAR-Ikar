@@ -2,19 +2,21 @@ import fs from 'fs';
 import path from 'path';
 import { getVideoDurationInSeconds } from 'get-video-duration';
 import ffprobe from 'ffprobe-static';
+import { createLogger, loadConfigs } from '../config_loader.js';
+
+const rootDir = process.cwd();
+const log = createLogger(rootDir);
 
 (async () => {
     try {
-        console.log("=== СТАРТ СБОРКИ АКЦЕНТОВ (VJ СТЕП-СЕКВЕНСОР + ИСПРАВЛЕНИЕ ПРОПУСКОВ) ===");
+        log("=== СТАРТ СБОРКИ АКЦЕНТОВ (МОДУЛЬНАЯ ВЕРСИЯ: VJ СТЕП-СЕКВЕНСОР) ===");
 
-        const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
-        const directorConfig = JSON.parse(fs.readFileSync('director-config.json', 'utf8'));
-        const library = JSON.parse(fs.readFileSync('library-config.json', 'utf8'));
-
-        const accentsCfg = directorConfig.accents || { enabled: false };
+        // Используем нашу утилиту для загрузки конфигов
+        const { config, director, library } = loadConfigs(rootDir);
+        const accentsCfg = director.accents || { enabled: false };
 
         if (!accentsCfg.enabled) {
-            console.log("⚠️ Акценты выключены в director-config.json. Пропускаем.");
+            log("⚠️ Акценты выключены в director-config.json. Пропускаем.");
             process.exit(0);
         }
 
@@ -22,12 +24,14 @@ import ffprobe from 'ffprobe-static';
         const totalDuration = isTest ? config.testMode.duration : config.project.totalDuration;
         const testStart = isTest ? config.testMode.start : 0;
         const testEnd = testStart + totalDuration;
-        const compDir = path.join(process.cwd(), 'compositions');
+        const compDir = path.join(rootDir, 'compositions');
 
         let accentsData = [];
-        const sourceFile = accentsCfg.sourceFile || 'accents.json';
+        const sourceFile = path.join(rootDir, accentsCfg.sourceFile || 'accents.json');
         if (fs.existsSync(sourceFile)) {
             accentsData = JSON.parse(fs.readFileSync(sourceFile, 'utf8')).accents || [];
+        } else {
+            log(`⚠️ Файл акцентов не найден по пути: ${sourceFile}`);
         }
 
         const activeAccents = accentsData.filter(time => isTest ? (time >= testStart && time <= testEnd) : (time <= totalDuration));
@@ -45,16 +49,20 @@ import ffprobe from 'ffprobe-static';
         // Чтение стиля
         const styleKey = vidCfg.style || "none";
         const customCss = library.effectsPool?.accentStyles?.[styleKey] || "";
-        if (customCss) console.log(`🎨 Применен стиль акцентов: [${styleKey}]`);
+        if (customCss) log(`🎨 Применен стиль акцентов: [${styleKey}]`);
 
         let sourceDuration = 10.0;
 
         if (useVideo) {
-            const fullVidPath = path.join(process.cwd(), vidCfg.file);
+            const fullVidPath = path.join(rootDir, vidCfg.file);
             if (fs.existsSync(fullVidPath)) {
                 try {
                     sourceDuration = await getVideoDurationInSeconds(fullVidPath, ffprobe.path);
-                } catch (err) {}
+                } catch (err) {
+                    log(`⚠️ Ошибка чтения длины видео для акцентов: ${err.message}`);
+                }
+            } else {
+                log(`⚠️ Видео для акцентов не найдено: ${fullVidPath}`);
             }
         }
 
@@ -65,14 +73,13 @@ import ffprobe from 'ffprobe-static';
 
         if (useVideo) {
             const maxStart = Math.max(0, sourceDuration - vidDuration);
-            // Делим доступное время на количество частей
             gridStep = maxStart / (slices > 1 ? slices - 1 : 1);
 
-            console.log(`🎯 Видео разделено на ${slices} частей (шаг ${gridStep.toFixed(2)}s).`);
+            log(`🎯 Видео разделено на ${slices} частей (шаг ${gridStep.toFixed(2)}s).`);
             if (sequence.length > 0) {
-                console.log(`📜 Заряжена секвенция: [${sequence.join(', ')}]`);
+                log(`📜 Заряжена секвенция: [${sequence.join(', ')}]`);
             } else {
-                console.log(`📜 Секвенция пуста, играем все ${slices} частей по кругу.`);
+                log(`📜 Секвенция пуста, играем все ${slices} частей по кругу.`);
             }
         }
 
@@ -83,7 +90,7 @@ import ffprobe from 'ffprobe-static';
             htmlClips += `<div id="host-video-accents" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: ${vidCfg.blendMode || 'screen'}; z-index: 9999;">\n`;
         }
 
-        let chunkIndex = 0; // Глобальный курсор нашей партитуры
+        let chunkIndex = 0;
 
         activeAccents.forEach((time, index) => {
             const renderStart = isTest ? (time - testStart) : time;
@@ -106,7 +113,7 @@ import ffprobe from 'ffprobe-static';
                 }
             }
 
-            // 2. ВИДЕО-АКЦЕНТЫ (VJ СТЕП-СЕКВЕНСОР С ИСПРАВЛЕНИЕМ ПРОПУСКОВ)
+            // 2. ВИДЕО-АКЦЕНТЫ
             if (useVideo) {
                 let sliceIdx = 0;
                 let skip = false;
@@ -123,17 +130,15 @@ import ffprobe from 'ffprobe-static';
                     sliceIdx = chunkIndex % slices;
                 }
 
-                chunkIndex++; // Всегда двигаем курсор секвенции вперед с каждым битом!
+                chunkIndex++;
 
                 if (!skip) {
-                    // Математическая защита: если юзер написал 12, а слайсов 8, берем 12 % 8 = 4
                     const safeSliceIdx = sliceIdx % slices;
                     const chunkStart = safeSliceIdx * gridStep;
                     const chunkEnd = chunkStart + vidDuration;
                     const vidId = `glitch-vid-${index}`;
 
-                    // >>> ИСПРАВЛЕНИЕ: Добавлен class="clip" и атрибуты data-in="0" data-out="..." <<<
-                    htmlClips += `  <video id="${vidId}" class="clip" data-in="0" data-out="${vidDuration.toFixed(3)}" src="${vidCfg.file}#t=${chunkStart.toFixed(3)},${chunkEnd.toFixed(3)}" data-start="${renderStart.toFixed(3)}" data-hf-media-start-basis="global" data-duration="${vidDuration.toFixed(3)}" muted playsinline style="position: absolute; width: 100%; height: 100%; object-fit: cover; mix-blend-mode: ${vidCfg.blendMode || 'screen'}; ${customCss}"></video>\n`;
+                    htmlClips += `  <video id="${vidId}" class="clip" data-in="0" data-out="${vidDuration.toFixed(3)}" src="../${vidCfg.file}#t=${chunkStart.toFixed(3)},${chunkEnd.toFixed(3)}" data-start="${renderStart.toFixed(3)}" data-hf-media-start-basis="global" data-duration="${vidDuration.toFixed(3)}" muted playsinline style="position: absolute; width: 100%; height: 100%; object-fit: cover; mix-blend-mode: ${vidCfg.blendMode || 'screen'}; ${customCss}"></video>\n`;
                 }
             }
         });
@@ -149,7 +154,7 @@ import ffprobe from 'ffprobe-static';
     <style>
         body { margin: 0; background: transparent; overflow: hidden; }
         #root { position: absolute; width: 100vw; height: 100vh; }
-        .clip { display: block; } /* Обязательное условие для корректного скрытия/показа */
+        .clip { display: block; }
     </style>
 </head>
 <body>
@@ -166,8 +171,8 @@ ${htmlClips}    </div>
         fs.writeFileSync(path.join(compDir, 'accents_scene.html'), html, 'utf8');
         fs.writeFileSync(path.join(compDir, 'accents_camera.css'), keyframesCSS, 'utf8');
 
-        console.log(`✅ УСПЕХ! Акценты собраны (Степ-секвенсор заряжен + видео жестко клипается).`);
+        log(`✅ УСПЕХ! Акценты собраны (Степ-секвенсор заряжен + видео жестко клипается).`);
     } catch (e) { 
-        console.error("❌ Ошибка:", e.message); 
+        log(`❌ Ошибка: ${e.message}`); 
     }
 })();

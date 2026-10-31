@@ -1,20 +1,23 @@
 import fs from 'fs';
 import path from 'path';
+import { createLogger, loadConfigs, loadBeats } from '../config_loader.js';
+
+const rootDir = process.cwd();
+const log = createLogger(rootDir);
 
 try {
-    console.log("=== СТАРТ СБОРКИ БИТОВ (ИЗОЛИРОВАННЫЕ КЛИПЫ) ===");
+    log("=== СТАРТ СБОРКИ БИТОВ (МОДУЛЬНАЯ ВЕРСИЯ: ИЗОЛИРОВАННЫЕ КЛИПЫ) ===");
 
-    const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+    // Используем нашу утилиту для загрузки конфигов
+    const { config } = loadConfigs(rootDir);
     const isTest = config.testMode && config.testMode.enabled;
     const totalDuration = isTest ? config.testMode.duration : config.project.totalDuration;
     const testStart = isTest ? config.testMode.start : 0;
     const testEnd = testStart + totalDuration;
-    const compDir = path.join(process.cwd(), 'compositions');
+    const compDir = path.join(rootDir, 'compositions');
 
-    let beats = [];
-    if (fs.existsSync('beats.json')) {
-        beats = JSON.parse(fs.readFileSync('beats.json', 'utf8')).beats || [];
-    }
+    // Используем нашу утилиту для загрузки битов
+    let beats = loadBeats(rootDir, log);
 
     const baseBeats = beats.filter(time => isTest ? (time >= testStart && time <= testEnd) : (time <= totalDuration));
     
@@ -114,7 +117,7 @@ ${beatsHTML}    </div>
     if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
     fs.writeFileSync(path.join(compDir, 'beats_scene.html'), html, 'utf8');
     
-    console.log(`✅ УСПЕХ! Вспышки надежно изолированы. Цвет: ${flashColor}`);
+    log(`✅ УСПЕХ! Вспышки надежно изолированы. Цвет: ${flashColor}`);
 } catch (e) { 
-    console.error("❌ Ошибка:", e.message); 
+    log(`❌ Ошибка: ${e.message}`); 
 }

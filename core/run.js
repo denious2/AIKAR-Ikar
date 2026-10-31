@@ -1,9 +1,13 @@
 import { execSync, spawn } from 'child_process';
 import fs from 'fs';
+import path from 'path';
 
-const configPath = 'config.json';
+const rootDir = process.cwd();
+// >>> ИСПРАВЛЕНО: Путь к конфигу теперь ведет в папку configs/ <<<
+const configPath = path.join(rootDir, 'configs', 'config.json');
+
 if (!fs.existsSync(configPath)) {
-    console.error("❌ Ошибка: Файл config.json не найден!");
+    console.error("❌ Ошибка: Файл config.json не найден в папке configs!");
     process.exit(1);
 }
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
@@ -20,19 +24,20 @@ const outputFileName = isTest
 
 // Читаем настройки рендера
 const hideDebugLogs = config.render?.hideDebugLogs !== false;
-const renderQuality = config.render?.quality; // например, "draft" или "high"
-const renderFps = config.render?.fps;         // например, 60
+const renderQuality = config.render?.quality; 
+const renderFps = config.render?.fps;         
 
+// >>> Обновлены пути к скриптам для модульной архитектуры <<<
 const scripts = [
-    'build_audio.js',
-    'build_beats.js',      
-    'build_accents.js',      
-    'build_images.js',      
-    'build_visuals.js',   
-    'build_dust.js',       
-    'build_subs.js',
-    'build_info.js',
-    'build_index.js'
+    path.join('core', 'build', 'audio.js'),
+    path.join('core', 'build', 'beats.js'),      
+    path.join('core', 'build', 'accents.js'),      
+    path.join('core', 'build', 'images.js'),      
+    path.join('core', 'build', 'visuals.js'),   
+    path.join('core', 'build', 'dust.js'),       
+    path.join('core', 'build', 'subs.js'),
+    path.join('core', 'build', 'info.js'),
+    path.join('core', 'build', 'index.js')
 ];
 
 function getTime() {
@@ -44,12 +49,14 @@ async function runPipeline() {
 
     try {
         scripts.forEach(script => {
-            if (fs.existsSync(script)) {
+            const fullScriptPath = path.join(rootDir, script);
+            if (fs.existsSync(fullScriptPath)) {
                 console.log(`[${getTime()}] --- Выполняется ${script} ---`);
-                execSync(`node ${script}`, { stdio: 'inherit' });
+                // Важно: запускаем node относительно корня проекта
+                execSync(`node ${script}`, { stdio: 'inherit', cwd: rootDir });
                 console.log(""); 
             } else {
-                console.log(`⚠️ Пропущен ${script} (файл не найден в папке проекта)\n`);
+                console.log(`⚠️ Пропущен ${script} (файл не найден в папке core/build)\n`);
             }
         });
 
@@ -73,13 +80,12 @@ async function runPipeline() {
         
         // Запускаем рендер асинхронно через spawn с перехватом потока
         await new Promise((resolve, reject) => {
-            const renderProcess = spawn('npx', renderArgs, { shell: true });
+            const renderProcess = spawn('npx', renderArgs, { shell: true, cwd: rootDir });
 
             const filterOutput = (data) => {
                 const text = data.toString();
                 
                 if (hideDebugLogs) {
-                    // Глушим все строчки, содержащие мусорные теги браузера, ворнинги И ИНФО-СООБЩЕНИЯ
                     if (text.includes('[initSession') || 
                         text.includes('[BrowserManager]') || 
                         text.includes('[HyperFrames]') || 
@@ -90,7 +96,7 @@ async function runPipeline() {
                     }
                 }
                 
-                // Пропускаем чистый прогресс (процентаж и ошибки) на экран
+                // Пропускаем чистый прогресс
                 process.stdout.write(text);
             };
 

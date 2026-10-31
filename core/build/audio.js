@@ -1,10 +1,16 @@
 import fs from 'fs';
 import path from 'path';
+import { createLogger, loadConfigs } from '../config_loader.js';
+
+const rootDir = process.cwd();
+const log = createLogger(rootDir);
 
 try {
-    console.log("=== СТАРТ СБОРКИ АУДИО (АВТОНОМНАЯ СЦЕНА + TEST MODE) ===");
-    const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
-    const compDir = path.join(process.cwd(), 'compositions');
+    log("=== СТАРТ СБОРКИ АУДИО (АВТОНОМНАЯ СЦЕНА + TEST MODE) ===");
+    
+    // Используем нашу утилиту для загрузки конфигов
+    const { config } = loadConfigs(rootDir);
+    const compDir = path.join(rootDir, 'compositions');
     
     const audioFile = config.media.audioFile;
     const isTest = config.testMode && config.testMode.enabled;
@@ -37,7 +43,7 @@ try {
     if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
     fs.writeFileSync(path.join(compDir, 'audio_scene.html'), html, 'utf8');
     
-    console.log(`✅ УСПЕХ! Аудио-сцена собрана (${audioFile}). Тайминг в треке: ${audioIn}s -> ${audioOut}s`);
+    log(`✅ УСПЕХ! Аудио-сцена собрана (${audioFile}). Тайминг в треке: ${audioIn}s -> ${audioOut}s`);
 } catch (e) {
-    console.error("❌ Ошибка:", e.message);
+    log(`❌ Ошибка: ${e.message}`);
 }

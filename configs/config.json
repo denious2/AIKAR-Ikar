@@ -6,13 +6,13 @@
     "resolution": { "width": 1080, "height": 1920 }
   },
   "testMode": { 
-    "enabled": false, 
-    "start": 30, 
-    "duration": 25 
+    "enabled": true, 
+    "start": 68, 
+    "duration": 10 
   },
   "render": { 
     "_options_quality": ["draft", "standard", "high"],
-    "quality": "standard",
+    "quality": "draft",
     "hideDebugLogs": true,
     "fps": 30
   },

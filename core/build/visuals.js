@@ -1,32 +1,21 @@
 import fs from 'fs';
 import path from 'path';
+import { createLogger, loadConfigs } from '../config_loader.js';
 
-const logFile = path.join(process.cwd(), 'debug_log.txt');
-function log(msg) {
-    console.log(msg);
-    fs.appendFileSync(logFile, msg + "\n", 'utf8');
-}
+const rootDir = process.cwd();
+const log = createLogger(rootDir);
 
 try {
-    log("=== СТАРТ СБОРКИ АТМОСФЕРЫ И ЭФФЕКТОВ (ЧИСТАЯ БАЗА) ===");
+    log("=== СТАРТ СБОРКИ АТМОСФЕРЫ И ЭФФЕКТОВ (МОДУЛЬНАЯ ВЕРСИЯ: ЧИСТАЯ БАЗА) ===");
     
-    const configPath = path.join(process.cwd(), 'config.json');
-    const directorPath = path.join(process.cwd(), 'director-config.json');
-    const libraryPath = path.join(process.cwd(), 'library-config.json');
-    
-    if (!fs.existsSync(configPath)) throw new Error("config.json не найден");
-    if (!fs.existsSync(directorPath)) throw new Error("director-config.json не найден");
-    if (!fs.existsSync(libraryPath)) throw new Error("library-config.json не найден");
-
-    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    const director = JSON.parse(fs.readFileSync(directorPath, 'utf8'));
-    const library = JSON.parse(fs.readFileSync(libraryPath, 'utf8'));
+    // Используем нашу утилиту для загрузки конфигов
+    const { config, director, library } = loadConfigs(rootDir);
     
     const isTest = config.testMode && config.testMode.enabled;
     const totalDuration = isTest ? config.testMode.duration : config.project.totalDuration;
     const testStart = isTest ? config.testMode.start : 0;
     const testEnd = testStart + totalDuration;
-    const compDir = path.join(process.cwd(), 'compositions');
+    const compDir = path.join(rootDir, 'compositions');
 
     let cssLibrary = "";
     if (library.effectsPool) {
@@ -64,7 +53,7 @@ try {
         let paths = Array.isArray(pool.path) ? pool.path : [pool.path];
         let files = [];
         paths.forEach(p => {
-            const fullPath = path.join(process.cwd(), p);
+            const fullPath = path.join(rootDir, p);
             if (fs.existsSync(fullPath)) {
                 const folderContents = fs.readdirSync(fullPath);
                 const validFiles = folderContents.filter(f => ['.jpg', '.jpeg', '.png', '.webp', '.mp4'].includes(path.extname(f).toLowerCase()));

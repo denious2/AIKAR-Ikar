@@ -1,15 +1,15 @@
 import fs from 'fs';
 import path from 'path';
+import { createLogger, loadConfigs, loadBeats } from '../config_loader.js';
+
+const rootDir = process.cwd();
+const log = createLogger(rootDir);
 
 try {
-    console.log("=== СТАРТ СБОРКИ ПЫЛИ И ЦВЕТОКОРРЕКЦИИ (LUT, NOISE & BEAT SYNC) ===");
+    log("=== СТАРТ СБОРКИ ПЫЛИ И ЦВЕТОКОРРЕКЦИИ (LUT, NOISE & BEAT SYNC) ===");
     
-    const configPath = path.join(process.cwd(), 'config.json');
-    const libraryPath = path.join(process.cwd(), 'library-config.json');
-    
-    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    // Читаем библиотеку, так как все эффекты переехали туда
-    const library = JSON.parse(fs.readFileSync(libraryPath, 'utf8'));
+    // Используем нашу утилиту для загрузки конфигов
+    const { config, library } = loadConfigs(rootDir);
     
     const isTest = config.testMode && config.testMode.enabled;
     const totalDuration = isTest ? config.testMode.duration : config.project.totalDuration;
@@ -17,20 +17,20 @@ try {
     const testEnd = testStart + totalDuration;
     
     const particlesCount = 50; 
-    const compDir = path.join(process.cwd(), 'compositions');
+    const compDir = path.join(rootDir, 'compositions');
 
     // === ВЫТЯГИВАЕМ ДИЗАЙН ИЗ БИБЛИОТЕКИ ===
     const activeLighting = config.effects.lightingStyle || "static_lamp";
     const activeColorGrade = config.effects.colorGrade || "none";
     const activeNoise = config.effects.noiseStyle || "soft_white";
 
-    const lightingCSS = library.effectsPool.lighting[activeLighting] || "";
-    const colorGradingCSS = library.effectsPool.colorGrading[activeColorGrade] || "";
-    const noiseCSS = library.effectsPool.noiseStyles[activeNoise] || "";
-    const swingingLampKeyframes = library.effectsPool.movements.swingingLamp || "";
+    const lightingCSS = library.effectsPool?.lighting?.[activeLighting] || "";
+    const colorGradingCSS = library.effectsPool?.colorGrading?.[activeColorGrade] || "";
+    const noiseCSS = library.effectsPool?.noiseStyles?.[activeNoise] || "";
+    const swingingLampKeyframes = library.effectsPool?.movements?.swingingLamp || "";
 
-    let trackBeats = [];
-    if (fs.existsSync('beats.json')) trackBeats = JSON.parse(fs.readFileSync('beats.json', 'utf8')).beats || [];
+    // Используем нашу утилиту для загрузки битов
+    let trackBeats = loadBeats(rootDir, log);
 
     let beatCSS = "";
     let wrapperStyle = "";
@@ -56,7 +56,7 @@ try {
         <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" />
     </filter>
 </svg>`;
-    if (library.effectsPool.svgFilters) {
+    if (library.effectsPool?.svgFilters) {
         Object.values(library.effectsPool.svgFilters).forEach(svg => svgFiltersHTML += `\n${svg}`);
     }
 
@@ -150,7 +150,7 @@ try {
     if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
     fs.writeFileSync(path.join(compDir, 'dust_scene.html'), html, 'utf8');
     
-    console.log(`✅ УСПЕХ! Сгенерированы атмосфера (Цвет: ${activeColorGrade}, Шум: ${activeNoise}). С пульсацией по биту.`);
+    log(`✅ УСПЕХ! Сгенерированы атмосфера (Цвет: ${activeColorGrade}, Шум: ${activeNoise}). С пульсацией по биту.`);
 } catch (e) { 
-    console.error("❌ Ошибка:", e.message); 
+    log(`❌ Ошибка: ${e.message}`); 
 }

@@ -2,27 +2,19 @@ import fs from 'fs';
 import path from 'path';
 import { getVideoDurationInSeconds } from 'get-video-duration';
 import ffprobe from 'ffprobe-static';
+import { createLogger, loadConfigs, loadBeats, loadSubtitlesStarts } from '../config_loader.js';
 
-function log(msg) {
-    console.log(msg);
-}
+const rootDir = process.cwd();
+const log = createLogger(rootDir);
 
 (async () => {
     try {
         log("=== СТАРТ ГЕНЕРАЦИИ РЕЖИССЕРСКОГО ЛИСТА (МАГНИТНЫЙ ТАЙМЛАЙН) ===");
         
-        const rootDir = process.cwd();
-        const configPath = path.join(rootDir, 'config.json');
-        const directorPath = path.join(rootDir, 'director-config.json');
-        const libraryPath = path.join(rootDir, 'library-config.json');
-        
-        if (!fs.existsSync(configPath)) throw new Error("config.json не найден");
-        if (!fs.existsSync(directorPath)) throw new Error("director-config.json не найден");
-        if (!fs.existsSync(libraryPath)) throw new Error("library-config.json не найден");
-
-        const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-        const director = JSON.parse(fs.readFileSync(directorPath, 'utf8'));
-        const library = JSON.parse(fs.readFileSync(libraryPath, 'utf8'));
+        // Используем утилиты для загрузки всех конфигов и таймингов
+        const { config, director, library } = loadConfigs(rootDir);
+        const beats = loadBeats(rootDir, log);
+        const subtitleStarts = loadSubtitlesStarts(rootDir, log);
         
         const isTest = config.testMode && config.testMode.enabled;
         const totalDuration = isTest ? config.testMode.duration : config.project.totalDuration;
@@ -34,34 +26,6 @@ function log(msg) {
         const activeAssetPools = director.assetPools || config.assetPools;
         const sectionRulesMap = director.sectionTypeRules || config.sectionTypeRules || {};
         const structure = (director.songStructure || config.songStructure).sort((a, b) => a.time - b.time);
-
-        // ====================================================================
-        // ЗАГРУЗКА БИТОВ И СУБТИТРОВ
-        // ====================================================================
-        let beats = [];
-        try {
-            const beatsPath = path.join(rootDir, 'beats.json');
-            if (fs.existsSync(beatsPath)) {
-                beats = JSON.parse(fs.readFileSync(beatsPath, 'utf8')).beats || [];
-            }
-        } catch (e) {}
-
-        let subtitleStarts = [];
-        try {
-            const srtPath = path.join(rootDir, 'media', 'subtitles.srt');
-            if (fs.existsSync(srtPath)) {
-                const srtContent = fs.readFileSync(srtPath, 'utf8');
-                const timeRegex = /(\d{2}):(\d{2}):(\d{2}),(\d{3})\s*-->/g;
-                let match;
-                while ((match = timeRegex.exec(srtContent)) !== null) {
-                    const h = parseInt(match[1], 10);
-                    const m = parseInt(match[2], 10);
-                    const s = parseInt(match[3], 10);
-                    const ms = parseInt(match[4], 10);
-                    subtitleStarts.push(h * 3600 + m * 60 + s + ms / 1000);
-                }
-            }
-        } catch (e) {}
 
         // ====================================================================
         // ЗАГРУЗКА АКЦЕНТОВ ИЗ НОВОЙ АРХИТЕКТУРЫ
@@ -353,7 +317,7 @@ function log(msg) {
                 isParallaxGroup: parallaxDetails.length > 1,
                 parallaxLayers: parallaxDetails,
                 magnetLog: magnetLog,
-                move: baseMove // <--- ИСПРАВЛЕНИЕ: Передаем движение для рендера строки в лог
+                move: baseMove
             });
 
             currentTime += currentImgDuration;

@@ -2,21 +2,20 @@ import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import ffmpegStatic from 'ffmpeg-static';
+import { createLogger, loadConfigs } from '../config_loader.js';
 
-const logFile = path.join(process.cwd(), 'debug_log.txt');
-function log(msg) {
-    console.log(msg);
-    fs.appendFileSync(logFile, msg + "\n", 'utf8');
-}
+const rootDir = process.cwd();
+const log = createLogger(rootDir);
 
 (async () => {
     log("=== СТАРТ АНАЛИЗА АУДИО (ЭКСТРАКТОР БАСА) ===");
 
     try {
-        const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+        // Используем нашу утилиту для загрузки конфига
+        const { config } = loadConfigs(rootDir);
         
         // Ищем файлы в папке media 
-        const audioDir = path.join(process.cwd(), 'media');
+        const audioDir = path.join(rootDir, 'media');
         if (!fs.existsSync(audioDir)) {
             throw new Error("Папка media не найдена!");
         }
@@ -144,7 +143,7 @@ function log(msg) {
                 return parseFloat(normalized.toFixed(3));
             });
 
-            const outputPath = path.join(process.cwd(), 'bass.json');
+            const outputPath = path.join(rootDir, 'bass.json');
             fs.writeFileSync(outputPath, JSON.stringify({
                 sourceFile: audioFileName,
                 fps: FPS,
@@ -155,6 +154,6 @@ function log(msg) {
         });
 
     } catch (e) {
-        log(`❌ Ошибка в utils_extract_bass.js: ${e.message}`);
+        log(`❌ Ошибка в generate_bass.js: ${e.message}`);
     }
 })();

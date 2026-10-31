@@ -1,15 +1,15 @@
 {
-  "name": "303",
-  "version": "1.0.0",
-  "description": "",
+  "name": "ns-ikar-engine",
+  "version": "0.8",
+  "description": "Procedural lyric video engine",
+  "type": "module",
   "main": "build_all.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node core/run.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["lyric video","musical video editor"],
+  "author": "Rubber Gallus",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
     "adm-zip": "^0.6.1",
     "audio-decode": "^3.12.0",

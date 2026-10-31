@@ -43,6 +43,24 @@
       "style": "purple_neon"
     }
   },
+  "audioReactors": {
+    "_hint": "Управляет реакцией CSS-свойств слоев на аудиотриггеры (например, на переменную --bass)",
+    "enabled": true,
+    "nodes": [
+      {
+        "target": "#shadow-crush-overlay",
+        "cssProperty": "opacity",
+        "formula": "calc(var(--bass) * 0.4)",
+        "transition": "opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)"
+      },
+      {
+        "target": "#host-subs",
+        "cssProperty": "transform",
+        "formula": "scale(calc(1 + var(--bass) * 0.04))",
+        "transition": "transform 0.05s ease-out"
+      }
+    ]
+  },
   "directorOverrides": {
     "_hint": "Здесь можно жестко привязать директивы к конкретным файлам",
     "files": {
@@ -54,11 +72,11 @@
       "i-12-prlx-b1.png": { "movement": "slide_run_right_heavy" },      
       "i-13.mp4": { "appearance": "soft_fade" },
       "i-13_2.png": { "movement": "cinematic_zoom_in_shake" },
-	  "i-13_2-prlx-b-1.png": { "movement": "downfall_with_spin" },	  
+      "i-13_2-prlx-b-1.png": { "movement": "downfall_with_spin" },      
       "i-15.png": { "movement": "slash_anime_flyby" },      
-      "i-15-prlx-b-1.png": { "movement": "rise_jitter_up" },	  
+      "i-15-prlx-b-1.png": { "movement": "rise_jitter_up" },      
       "i-15-prlx-b1.png": { "movement": "downfall" },
-      "i-16.png": { "movement": "downfall_with_spin" },     
+      "i-16.png": { "movement": "downfall_with_spin" },    
       "i-16-prlx-b-1.png": { "movement": "rise_jitter_up" },
       "i-16-prlx-b1.png": { "movement": "cinematic_zoom_in_shake" },
       "pl12.mp4": { "appearance": "soft_fade" } 
@@ -73,7 +91,7 @@
       "blendMode": "multiply",
       "baseOpacity": 1.0,
       "allowedMovements": ["fast_dolly_in", "aggressive_shake", "glitch_pan_left", "glitch_pan_right", "rapid_pulse", "cinematic_zoom_in_shake"],
-	  "allowedMovements_b-1": ["slow_pan_left", "slow_pan_right", "micro_jitter"],
+      "allowedMovements_b-1": ["slow_pan_left", "slow_pan_right", "micro_jitter"],
       "allowedMovements_b1": ["slow_pan_left", "slow_pan_right", "micro_jitter"],
       "allowedMovements_b2": ["rapid_pulse", "subtle_zoom"],
       "defaultAppearance": "glitch_snap"

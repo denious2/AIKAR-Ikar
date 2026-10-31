@@ -4,16 +4,18 @@ import path from 'path';
 // ==========================================
 // 🛠 НАСТРОЙКИ ТЕСТОВОГО СТЕНДА
 // ==========================================
-const TEST_MEDIA = "media/Scenes/prlx/i-14-prlx-b2.png"; // Путь к картинке или видео
-const DURATION = 4.0;                       // Длительность сцены в секундах
-const MOVEMENT = "slash_anime_flyby";                // Эффект движения
-const APPEARANCE = "hard_cut";             // Эффект появления (или "none")
-const COLOR_GRADE = "none";                 // Цветокоррекция (например, "neon_noir" или "none")
-const GLOBAL_FILTER = "none";  // Глобальный фильтр (или "none")
+const TEST_MEDIA = "media/Scenes/prlx/i-14-prlx-b2.png"; // Путь к картинке или видео от корня
+const DURATION = 4.0;                                   // Длительность сцены в секундах
+const MOVEMENT = "slash_anime_flyby";                   // Эффект движения
+const APPEARANCE = "hard_cut";                          // Эффект появления (или "none")
+const COLOR_GRADE = "none";                             // Цветокоррекция (например, "neon_noir" или "none")
+const GLOBAL_FILTER = "none";                           // Глобальный фильтр (или "none")
 
 try {
-    const libraryPath = path.join(process.cwd(), 'library-config.json');
-    if (!fs.existsSync(libraryPath)) throw new Error("library-config.json не найден!");
+    const rootDir = process.cwd();
+    // >>> ИСПРАВЛЕНО: Путь к конфигу ведет в папку configs/ <<<
+    const libraryPath = path.join(rootDir, 'configs', 'library-config.json');
+    if (!fs.existsSync(libraryPath)) throw new Error("library-config.json не найден в папке configs!");
     
     const library = JSON.parse(fs.readFileSync(libraryPath, 'utf8'));
 
@@ -46,17 +48,17 @@ try {
     let mediaTag = "";
 
     if (isVideo) {
-        // Если видео, добавляем подгонку playbackRate как в основном рендере
-        mediaTag = `<video id="test-media" src="${TEST_MEDIA}" class="media-layer" style="animation: ${animCss}" data-duration="${DURATION}" autoplay muted playsinline loop></video>`;
+        // Добавляем ../ чтобы путь от compositions доходил до корня
+        mediaTag = `<video id="test-media" src="../${TEST_MEDIA}" class="media-layer" style="animation: ${animCss}" data-duration="${DURATION}" autoplay muted playsinline loop></video>`;
     } else {
-        mediaTag = `<div id="test-media" class="media-layer" style="background-image: url('${TEST_MEDIA}'); animation: ${animCss}"></div>`;
+        mediaTag = `<div id="test-media" class="media-layer" style="background-image: url('../${TEST_MEDIA}'); animation: ${animCss}"></div>`;
     }
 
     const html = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>ПРЕВЬЮ: ${TEST_MEDIA}</title>
+    <title>ТЕСТОВЫЙ СТЕНД: ${TEST_MEDIA}</title>
     <style>
         body { margin: 0; background: #333; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: sans-serif; color: white; }
         #canvas { position: relative; width: 1280px; height: 720px; background: #000; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -115,8 +117,12 @@ try {
 </body>
 </html>`;
 
-    fs.writeFileSync('preview.html', html, 'utf8');
-    console.log(`✅ preview.html сгенерирован! Открой его в браузере.`);
+    // Сохраняем в папку compositions
+    const compDir = path.join(rootDir, 'compositions');
+    if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
+    
+    fs.writeFileSync(path.join(compDir, 'test_stend.html'), html, 'utf8');
+    console.log(`✅ compositions/test_stend.html сгенерирован! Открой его в браузере.`);
 } catch (e) {
     console.error("❌ Ошибка:", e.message);
 }

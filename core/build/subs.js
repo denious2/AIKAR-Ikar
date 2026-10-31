@@ -1,23 +1,19 @@
 import fs from 'fs';
 import path from 'path';
 
-try {
-    console.log("=== СТАРТ СБОРКИ СУБТИТРОВ (КИНЕТИЧЕСКИЙ БАС И СКЛЕЙКА ПРЕДЛОГОВ) ===");
-    
-    const configPath = path.join(process.cwd(), 'config.json');
-    const directorPath = path.join(process.cwd(), 'director-config.json');
-    const libraryPath = path.join(process.cwd(), 'library-config.json');
-    
-    if (!fs.existsSync(configPath)) throw new Error("config.json не найден");
-    if (!fs.existsSync(directorPath)) throw new Error("director-config.json не найден");
-    if (!fs.existsSync(libraryPath)) throw new Error("library-config.json не найден");
+import { createLogger, loadConfigs } from '../config_loader.js';
 
-    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    const director = JSON.parse(fs.readFileSync(directorPath, 'utf8'));
-    const library = JSON.parse(fs.readFileSync(libraryPath, 'utf8'));
-    const compDir = path.join(process.cwd(), 'compositions');
+const rootDir = process.cwd();
+const log = createLogger(rootDir);
+
+try {
+    log("=== СТАРТ СБОРКИ СУБТИТРОВ (КИНЕТИЧЕСКИЙ БАС И СКЛЕЙКА ПРЕДЛОГОВ) ===");
     
-    const subsFile = config.media.subtitlesFile;
+    // Используем нашу утилиту для загрузки конфигов
+    const { config, director, library } = loadConfigs(rootDir);
+    const compDir = path.join(rootDir, 'compositions');
+    
+    const subsFile = path.join(rootDir, config.media.subtitlesFile);
     if (!fs.existsSync(subsFile)) {
         throw new Error(`Файл субтитров не найден по пути: ${subsFile}`);
     }
@@ -31,7 +27,7 @@ try {
     let svgFiltersHTML = "";
     let defaultTextStyle = "retro_box"; 
     
-    // --- ВЕРНУЛ: Полный парсинг библиотеки эффектов ---
+    // Полный парсинг библиотеки эффектов
     if (library.effectsPool) {
         if (library.effectsPool.fonts) {
             Object.values(library.effectsPool.fonts).forEach(font => cssLibrary += `${font}\n`);
@@ -149,7 +145,7 @@ try {
             }
         }
     });
-    console.log(`Обработано ${subIndex} титульных строк (предлоги склеены).`);
+    log(`Обработано ${subIndex} титульных строк (предлоги склеены).`);
 
     const html = `<!DOCTYPE html>
 <html>
@@ -207,8 +203,8 @@ ${subsHTML}
 
     if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
     fs.writeFileSync(path.join(compDir, 'subs_scene.html'), html, 'utf8');
-    console.log("✅ УСПЕХ! HTML файл субтитров перезаписан.");
+    log("✅ УСПЕХ! HTML файл субтитров перезаписан.");
 } catch (e) {
-    console.error("❌ ОШИБКА В BUILD_SUBS.JS:", e.message);
+    log(`❌ ОШИБКА В BUILD_SUBS.JS: ${e.message}`);
     process.exit(1); 
 }
