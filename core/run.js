@@ -37,6 +37,7 @@ const scripts = [
     path.join('core', 'build', 'dust.js'),       
     path.join('core', 'build', 'subs.js'),
     path.join('core', 'build', 'info.js'),
+	path.join('core', 'build', 'reactors.js'),
     path.join('core', 'build', 'index.js')
 ];
 

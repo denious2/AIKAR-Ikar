@@ -74,11 +74,21 @@ export function generateGroupHTML(params) {
         const layerOverride = getOverride(layer.path);
         let finalMove = layerOverride?.movement || (layer.id === 'fg' ? baseMove : null);
         
+        // >>> НОВОЕ: Определение эшелона глубины для Node Engine <<<
+        let depthClass = 'layer-hero';
+        let layerN = 0;
+        
+        if (layer.id !== 'fg') {
+            layerN = parseInt(layer.id.replace('b', ''), 10);
+            if (!isNaN(layerN)) {
+                depthClass = layerN > 0 ? 'layer-bg' : 'layer-fg';
+            }
+        }
+
         if (!finalMove && layer.id !== 'fg') {
             const bgPoolKey = `allowedMovements_${layer.id}`;
             const bgMoves = activePool[bgPoolKey] || ["none"];
             
-            const layerN = parseInt(layer.id.replace('b', ''), 10);
             let shift = 0;
             if (!isNaN(layerN)) {
                 shift = layerN > 0 ? layerN : (5 + Math.abs(layerN));
@@ -111,9 +121,11 @@ export function generateGroupHTML(params) {
         const isMediaVideo = layer.path.toLowerCase().endsWith('.mp4');
         
         if (isMediaVideo) {
-            groupHTML += `    <video id="vid-${activePoolName}-${imageIndex}-${layer.id}" src="../${layer.path}" class="video-layer clip" data-in="0" data-out="${durStr}" data-start="${startStr}" data-hf-media-start-basis="global" data-duration="${durStr}" data-track-index="${trackIdx}" style="z-index: ${layer.zIndex}; mix-blend-mode: ${currentBlend}; --base-opacity: ${baseOpacity}; ${opacityCss} ${animCss}" autoplay muted playsinline></video>\n`;
+            // Добавлен depthClass
+            groupHTML += `    <video id="vid-${activePoolName}-${imageIndex}-${layer.id}" src="../${layer.path}" class="video-layer clip ${depthClass}" data-in="0" data-out="${durStr}" data-start="${startStr}" data-hf-media-start-basis="global" data-duration="${durStr}" data-track-index="${trackIdx}" style="z-index: ${layer.zIndex}; mix-blend-mode: ${currentBlend}; --base-opacity: ${baseOpacity}; ${opacityCss} ${animCss}" autoplay muted playsinline></video>\n`;
         } else {
-            groupHTML += `    <div id="img-${activePoolName}-${imageIndex}-${layer.id}" class="image-layer clip" data-in="0" data-out="${durStr}" data-start="${startStr}" data-duration="${durStr}" data-track-index="${trackIdx}" style="z-index: ${layer.zIndex}; background-image: url('../${layer.path}'); mix-blend-mode: ${currentBlend}; --base-opacity: ${baseOpacity}; ${opacityCss} ${animCss}"></div>\n`;
+            // Добавлен depthClass
+            groupHTML += `    <div id="img-${activePoolName}-${imageIndex}-${layer.id}" class="image-layer clip ${depthClass}" data-in="0" data-out="${durStr}" data-start="${startStr}" data-duration="${durStr}" data-track-index="${trackIdx}" style="z-index: ${layer.zIndex}; background-image: url('../${layer.path}'); mix-blend-mode: ${currentBlend}; --base-opacity: ${baseOpacity}; ${opacityCss} ${animCss}"></div>\n`;
         }
     });
     

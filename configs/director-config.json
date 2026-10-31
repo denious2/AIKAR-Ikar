@@ -44,7 +44,7 @@
     }
   },
   "audioReactors": {
-    "_hint": "Управляет реакцией CSS-свойств слоев на аудиотриггеры (например, на переменную --bass)",
+    "_hint": "Управляет новыми нодовыми связями через глобальные CSS-переменные --bass, --melody, --vocal, --beat",
     "enabled": true,
     "nodes": [
       {
@@ -57,6 +57,24 @@
         "target": "#host-subs",
         "cssProperty": "transform",
         "formula": "scale(calc(1 + var(--bass) * 0.04))",
+        "transition": "transform 0.05s ease-out"
+      },
+      {
+        "target": ".layer-bg",
+        "cssProperty": "filter",
+        "formula": "blur(calc(var(--melody) * 6px))",
+        "transition": "filter 0.1s ease-out"
+      },
+      {
+        "target": ".layer-hero",
+        "cssProperty": "filter",
+        "formula": "brightness(calc(1 + var(--vocal) * 0.25))",
+        "transition": "filter 0.05s ease-out"
+      },
+      {
+        "target": "#host-images",
+        "cssProperty": "transform",
+        "formula": "scale(calc(1 + var(--beat) * 0.03))",
         "transition": "transform 0.05s ease-out"
       }
     ]
