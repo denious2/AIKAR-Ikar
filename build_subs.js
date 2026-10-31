@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 try {
-    console.log("=== СТАРТ СБОРКИ СУБТИТРОВ (ДИНАМИЧЕСКИЕ СЕКЦИИ + ГЛОБАЛЬНЫЙ ШРИФТ) ===");
+    console.log("=== СТАРТ СБОРКИ СУБТИТРОВ (КИНЕТИЧЕСКИЙ БАС И СКЛЕЙКА ПРЕДЛОГОВ) ===");
     
     const configPath = path.join(process.cwd(), 'config.json');
     const directorPath = path.join(process.cwd(), 'director-config.json');
@@ -29,9 +29,9 @@ try {
 
     let cssLibrary = "";
     let svgFiltersHTML = "";
-    let defaultTextStyle = "retro_box"; // Хардкодный fallback на всякий случай
+    let defaultTextStyle = "retro_box"; 
     
-    // Читаем стили из библиотеки
+    // --- ВЕРНУЛ: Полный парсинг библиотеки эффектов ---
     if (library.effectsPool) {
         if (library.effectsPool.fonts) {
             Object.values(library.effectsPool.fonts).forEach(font => cssLibrary += `${font}\n`);
@@ -59,7 +59,6 @@ try {
         }
     }
 
-    // --- ГЛОБАЛЬНЫЙ ШРИФТ ИЗ CONFIG.JSON ---
     let globalFontCss = "";
     if (config.effects?.subtitles?.useCustomFont && config.effects?.subtitles?.fontFamily) {
         globalFontCss = `
@@ -68,11 +67,9 @@ try {
         }`;
     }
 
-    // --- ПОДГОТОВКА СТРУКТУРЫ ДЛЯ ДИНАМИЧЕСКИХ СТИЛЕЙ ---
     const structure = (director.songStructure || config.songStructure).sort((a, b) => a.time - b.time);
     const rulesMap = director.sectionTypeRules || config.sectionTypeRules || {};
 
-    // Функция поиска стиля для конкретного таймкода
     function getStyleForTime(time) {
         let currentSection = structure[0];
         for (let i = 0; i < structure.length; i++) {
@@ -96,6 +93,28 @@ try {
         return (parseFloat(parts[0]) * 3600) + (parseFloat(parts[1]) * 60) + parseFloat(parts[2]);
     }
 
+    // Разбивка фразы на слова с защитой коротких предлогов
+    function processTextForBass(rawText) {
+        let text = rawText.replace(/<br\s*\/?>/gi, ' _BR_ ');
+        
+        // Приклеиваем слова из 1-3 букв к следующему слову неразрывным пробелом (&nbsp;)
+        text = text.replace(/(^|\s)([а-яА-ЯёЁa-zA-Z]{1,3})\s+/g, '$1$2&nbsp;');
+        // Прогоняем второй раз для случаев, когда идут два коротких слова подряд
+        text = text.replace(/(^|\s)([а-яА-ЯёЁa-zA-Z]{1,3})\s+/g, '$1$2&nbsp;');
+
+        const words = text.split(/\s+/).filter(w => w.length > 0);
+        
+        let htmlOut = '';
+        words.forEach(word => {
+            if (word === '_BR_') {
+                htmlOut += '<br>';
+            } else {
+                htmlOut += `<span class="bass-word">${word}</span> `;
+            }
+        });
+        return htmlOut.trim();
+    }
+
     const blocks = srt.replace(/\r/g, '').trim().split(/\n\s*\n/);
     let subIndex = 0;
     
@@ -114,23 +133,23 @@ try {
                 const renderEnd = isTest ? Math.min(totalDuration, absEnd - testStart) : absEnd;
                 const duration = renderEnd - renderStart;
 
-                const text = lines.slice(timeIndex + 1).join('<br>');
-                const subId = `sub-clip-${subIndex}`;
+                const rawText = lines.slice(timeIndex + 1).join('<br>');
+                const processedHtmlText = processTextForBass(rawText);
                 
-                // Динамически получаем стиль по времени начала фразы
+                const subId = `sub-clip-${subIndex}`;
                 const activeStyle = getStyleForTime(absStart);
 
                 subsHTML += `
 <div id="${subId}" class="clip subtitle-wrapper" data-in="${renderStart.toFixed(3)}" data-out="${renderEnd.toFixed(3)}" data-start="${renderStart.toFixed(3)}" data-duration="${duration.toFixed(3)}" data-track-index="6">
     <div class="subtitle-animator" style="--dur: ${duration.toFixed(3)}s;">
-        <span class="subtitle-text-inline ${activeStyle}">${text}</span>
+        <span class="subtitle-text-inline ${activeStyle}">${processedHtmlText}</span>
     </div>
 </div>`;
                 subIndex++;
             }
         }
     });
-    console.log(`Обработано ${subIndex} титульных строк.`);
+    console.log(`Обработано ${subIndex} титульных строк (предлоги склеены).`);
 
     const html = `<!DOCTYPE html>
 <html>
@@ -155,8 +174,17 @@ try {
 
     .subtitle-text-inline {
         font-size: 3.5em !important; 
-        white-space: pre-line; 
-        display: inline;
+        white-space: normal; 
+        display: inline-block;
+    }
+    
+    /* Кинетическая реакция слов на бас */
+    .bass-word {
+        display: inline-block;
+        letter-spacing: calc(var(--bass) * 8px);
+        padding: 0 calc(var(--bass) * 4px);
+        transform: scale(calc(1 + var(--bass) * 0.05));
+        transition: letter-spacing 0.05s ease-out, padding 0.05s ease-out, transform 0.05s ease-out;
     }
     
     ${globalFontCss}
@@ -169,7 +197,6 @@ ${svgFiltersHTML}
 ${subsHTML}
 </div>
 <script>
-    // ДОБАВЛЕНО: Ждем загрузки шрифтов, чтобы не было пустых квадратов на рендере
     document.fonts.ready.then(() => {
         window.__timelines = window.__timelines || {};
         window.__timelines["subs_scene"] = document.querySelector('[data-composition-id="subs_scene"]');
@@ -180,7 +207,7 @@ ${subsHTML}
 
     if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
     fs.writeFileSync(path.join(compDir, 'subs_scene.html'), html, 'utf8');
-    console.log("✅ УСПЕХ! HTML файл субтитров перезаписан (инъекция глобального шрифта и динамические секции).");
+    console.log("✅ УСПЕХ! HTML файл субтитров перезаписан.");
 } catch (e) {
     console.error("❌ ОШИБКА В BUILD_SUBS.JS:", e.message);
     process.exit(1); 

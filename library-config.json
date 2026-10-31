@@ -10,12 +10,11 @@
       "jura": "@font-face { font-family: 'Jura'; src: url('https://fonts.gstatic.com/s/jura/v31/z73dXa3aW78m7xTf_G2pI-4.woff2') format('woff2'); font-weight: normal; font-style: normal; }"
     },
     "textStyles": {
-      "retro_box": "font-family: 'Jura', sans-serif !important; font-size: 72px!important; color: #b0b0b0; background-color: #111111; padding: 0 0.5em 0.2em 0.5em; margin: 0.5em 0; line-height: 1.5; -webkit-box-decoration-break: clone; box-decoration-break: clone;",
-      "chorus_impact": "font-family: 'Jura', sans-serif !important; font-size: 86px!important; font-weight: bold!important; color: #111111; background-color: #e0e0e0; padding: 0 0.4em 0.1em 0.4em; margin: 0.5em 0; line-height: 1.4; -webkit-box-decoration-break: clone; box-decoration-break: clone; text-transform: uppercase;",
-      "hook_glitch": "font-family: 'Jura', sans-serif !important; font-size: 78px!important; font-weight: bold!important; color: #f4f4f4; background-color: transparent; text-shadow: -3px 3px 0px #ff0055, 3px -3px 0px #00ffcc; margin: 0.5em 0; line-height: 1.5; text-transform: uppercase;",
-      "outro_ghost": "font-family: 'Jura', sans-serif !important; font-size: 60px!important; color: #ffffff; background-color: transparent; opacity: 0.7; letter-spacing: 4px; margin: 0.5em 0; line-height: 1.5;",
-	  "lighting_box": "font-family: 'Jura', sans-serif !important; font-size: 72px!important; color: #9390a0; background-color: #070707; padding: 0 0.5em 0.2em 0.5em; margin: 0.5em 0; line-height: 1.5; -webkit-box-decoration-break: clone; box-decoration-break: clone; border-radius: 8px; animation: electric_glow_jitter 0.15s steps(2, end) infinite alternate;"
-    },
+      "retro_box": "font-family: 'Jura', sans-serif !important; font-size: 68px!important; color: #b0b0b0; background-color: #111111; padding: 0 0.5em 0.2em 0.5em; margin: 0.5em 0; line-height: 1.5; -webkit-box-decoration-break: clone; box-decoration-break: clone;",
+      "chorus_impact": "font-family: 'Jura', sans-serif !important; font-size: 68px!important; font-weight: bold!important; color: #111111; background-color: #e0e0e0; padding: 0 0.4em 0.1em 0.4em; margin: 0.5em 0; line-height: 1.4; -webkit-box-decoration-break: clone; box-decoration-break: clone; text-transform: uppercase;",
+      "hook_glitch": "font-family: 'Jura', sans-serif !important; font-size: 68px!important; font-weight: bold!important; color: #f4f4f4; background-color: transparent; text-shadow: -3px 3px 0px #ff0055, 3px -3px 0px #00ffcc; margin: 0.5em 0; line-height: 1.5; text-transform: uppercase;",
+      "outro_ghost": "font-family: 'Jura', sans-serif !important; font-size: 68px!important; color: #ffffff; background-color: transparent; opacity: 0.7; letter-spacing: 4px; margin: 0.5em 0; line-height: 1.5;",
+      "lighting_box": "font-family: 'Jura', sans-serif !important; font-size: 66px!important; color: #c0b6d1; background-color: #070707; padding: 0 0.5em 0.2em 0.5em; margin: 0.5em 0; line-height: 1.5; -webkit-box-decoration-break: clone; box-decoration-break: clone; border-radius: 8px; animation: electric_glow_jitter 0.15s steps(2, end) infinite alternate;"    },
     "globalFilters": {
       "none": "display: none;",
       "invert": "backdrop-filter: invert(100%);",
@@ -25,7 +24,7 @@
 	  "color_burn_power": "backdrop-filter: contrast(125%) brightness(100%) sepia(10%) hue-rotate(-2deg) saturate(120%); mix-blend-mode: gramultiply;",
 	  "color_burn_effect2": "backdrop-filter: contrast(220%) brightness(85%) sepia(12%) hue-rotate(-10deg) saturate(150%); mix-blend-mode: multiply;",
 	  "color_burn_middle": "backdrop-filter: contrast(120%) brightness(96%) sepia(8%) hue-rotate(-2deg) saturate(105%); mix-blend-mode: multiply;",
-	  "color_burn_low": "backdrop-filter: contrast(110%) brightness(105%) sepia(2%) saturate(100%); mix-blend-mode: multiply;",
+	  "color_burn_low": "backdrop-filter: contrast(110%) brightness(125%) sepia(2%) saturate(100%); mix-blend-mode: multiply;",
 	  "blend_color_burn": "mix-blend-mode: color-burn; filter: contrast(135%) brightness(97%);",
       "cinema_dark": "backdrop-filter: brightness(0.3) contrast(1.1);",
       "dreamy_night": "backdrop-filter: brightness(0.4) blur(3px) saturate(0.7);",
@@ -40,12 +39,12 @@
       "sepia_burn": "background: linear-gradient(135deg, #fcd34d 0%, #78350f 100%); mix-blend-mode: multiply; opacity: 0.25;",
       "cold_noir": "background-color: #0e304f; mix-blend-mode: color; opacity: 0.4;",
       "neon_noir": "background: linear-gradient(135deg, rgba(15, 20, 60, 0.6) 0%, rgba(60, 15, 80, 0.4) 100%); mix-blend-mode: overlay;",
-      "midnight_blue": "background-color: #100b20; mix-blend-mode: color; opacity: 0.5;",
+      "midnight_blue": "background-color: #100b20; mix-blend-mode: color; opacity: 0.3;",
       "dark_purple_lut": "background: linear-gradient(135deg, rgba(42, 16, 64, 0.35) 0%, rgba(20, 5, 30, 0.5) 100%); mix-blend-mode: screen;"
     },
 	"accentStyles": {
       "none": "",
-	  "purple_neon": "opacity: 0.2; filter: sepia(1) hue-rotate(230deg) saturate(5) brightness(1.2);",
+	  "purple_neon": "opacity: 0.25; filter: sepia(1) hue-rotate(260deg) saturate(2.5) brightness(1.1);",
       "white_soft_50": "opacity: 0.5;",
       "white_soft_20": "opacity: 0.2;  contrast(0.7) brightness(0.7);",
       "harsh_contrast": "opacity: 0.8; filter: contrast(1.5) brightness(1.2);",
@@ -82,7 +81,7 @@
       "rapid_pulse": "0%, 100% { transform: scale(1.15) rotate(0deg); } 25% { transform: scale(1.3) rotate(1.5deg); } 50% { transform: scale(1.15) rotate(-1.5deg); } 75% { transform: scale(1.25) rotate(1deg); }",
       "cinematic_zoom_in_shake": "0% { transform: scale(1.1) translate(0,0) rotate(0deg); } 20% { transform: scale(1.15) translate(-3px, 3px) rotate(-1.5deg); } 40% { transform: scale(1.2) translate(3px, -2px) rotate(1.5deg); } 60% { transform: scale(1.25) translate(-2px, 3px) rotate(-0.5deg); } 80% { transform: scale(1.3) translate(3px, -3px) rotate(-1deg); } 100% { transform: scale(1.35) translate(0,0) rotate(0deg); }",
       "downfall": "0% { transform: scale(1.0) translateY(0vh); } 100% { transform: scale(1.2) translateY(40vh); }",
-	  "downfall_with_spin": "0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(40vh) rotate(15deg); }",
+	  "downfall_with_spin": "0% { transform: translateY(0) rotate(0deg); } 100% { transform: scale(0.8) translateY(40vh) rotate(20deg); }",
 	  "rise_jitter_up": "0% { transform: translateY(40vh) scale(1.0); opacity: 0; } 10% { transform: translateY(30vh) scale(1.02); opacity: 1; } 15% { transform: translateY(22vh) translate(2px, -3px); } 20% { transform: translateY(16vh) translate(-3px, 2px); } 25% { transform: translateY(10vh) translate(2px, 3px); } 30% { transform: translateY(5vh) translate(-2px, -2px); } 35% { transform: translateY(2vh) translate(3px, -1px); } 40% { transform: translateY(0vh) translate(-1px, 2px); } 50% { transform: translateY(-5vh) translate(2px, -2px); } 60% { transform: translateY(-12vh) translate(-2px, 3px); } 75% { transform: translateY(-22vh) translate(1px, -2px); } 90% { transform: translateY(-32vh) translate(-1px, 1px); } 100% { transform: translateY(-40vh) scale(1.05); opacity: 0; }",
 	  "slow_zoom_jitter": "0% { transform: scale(1.0) translate(0px, 0px); } 20% { transform: scale(1.03) translate(-2px, 2px); } 40% { transform: scale(1.06) translate(2px, -3px); } 60% { transform: scale(1.09) translate(-3px, 1px); } 80% { transform: scale(1.12) translate(2px, 3px); } 100% { transform: scale(1.15) translate(-1px, -2px); }",
 	  "swing_center": "0% { transform: scale(1.3) rotate(-12deg); } 50% { transform: scale(1.3) rotate(12deg); } 100% { transform: scale(1.3) rotate(10deg); }",

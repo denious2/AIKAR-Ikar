@@ -11,11 +11,9 @@ function log(msg) {
 
 (async () => {
     try {
-        log("=== СТАРТ СБОРКИ НАРРАТИВА (РИТМИЧЕСКИЙ МАГНИТ) ===");
+        log("=== СТАРТ СБОРКИ НАРРАТИВА (УМНЫЕ OVERRIDES И СЛОИ Z: -N..+N) ===");
         
-        // Жесткая привязка к корню проекта для надежного чтения файлов
-        const PROJECT_ROOT = "C:\\Users\\webpr\\YandexDisk-webproektor\\Ikar";
-        const rootDir = fs.existsSync(PROJECT_ROOT) ? PROJECT_ROOT : process.cwd();
+        const rootDir = process.cwd();
 
         const configPath = path.join(rootDir, 'config.json');
         const directorPath = path.join(rootDir, 'director-config.json');
@@ -29,6 +27,26 @@ function log(msg) {
         const director = JSON.parse(fs.readFileSync(directorPath, 'utf8'));
         const library = JSON.parse(fs.readFileSync(libraryPath, 'utf8'));
         
+        // ====================================================================
+        // УМНЫЙ ПОИСК OVERRIDES (Fuzzy Match по имени файла)
+        // Защищает от опечаток в путях и слэшах в director-config.json
+        // ====================================================================
+        const getOverride = (filePath) => {
+            const overrides = director.directorOverrides?.files || config.directorOverrides?.files || {};
+            // 1. Ищем точное совпадение (если пути идеально совпали)
+            if (overrides[filePath]) return overrides[filePath];
+            
+            // 2. Ищем совпадение только по базовому имени файла
+            const targetBase = filePath.split('/').pop().split('\\').pop();
+            for (const [key, val] of Object.entries(overrides)) {
+                const keyBase = key.split('/').pop().split('\\').pop();
+                if (keyBase === targetBase) {
+                    return val;
+                }
+            }
+            return null;
+        };
+
         const isTest = config.testMode && config.testMode.enabled;
         const totalDuration = isTest ? config.testMode.duration : config.project.totalDuration;
         const testStart = isTest ? config.testMode.start : 0;
@@ -241,7 +259,8 @@ function log(msg) {
                  currentImgDuration = timeToSectionEnd;
             }
 
-            const fileOverride = director.directorOverrides?.files?.[file];
+            // ИСПОЛЬЗУЕМ УМНЫЙ ПОИСК OVERRIDES
+            const fileOverride = getOverride(file);
 
             if (fileOverride) {
                 if (fileOverride.duration) {
@@ -273,42 +292,62 @@ function log(msg) {
             const customEntrance = fileOverride?.entrance;
             const customExit = fileOverride?.exit;
             const legacyAppear = fileOverride?.appearance;
-
-            let animParts = [baseMove];
-
-            if (customEntrance || customExit) {
-                if (customEntrance) animParts.push(`${customEntrance} ${duration + OVERLAP}s linear forwards`);
-                if (customExit) animParts.push(`${customExit} ${duration + OVERLAP}s linear forwards`);
-            } else {
-                const appear = isFirst ? "" : (legacyAppear || defaultAppear);
-                if (appear) animParts.push(`${appear} ${duration + OVERLAP}s linear forwards`);
-            }
             
             const layersToRender = []; 
             let currentZIndex = 1; 
             
+            // ====================================================================
+            // ДИНАМИЧЕСКИЙ ПАРСИНГ ПАРАЛЛАКСА (-N до +N) 
+            // ====================================================================
             if (!isVideo) {
                 const scenesPath = path.join(rootDir, activePool.path);
                 const prlxDir = path.join(scenesPath, 'prlx');
+                
                 if (fs.existsSync(prlxDir)) {
-                    ['b3', 'b2', 'b1'].forEach(layerSuffix => {
-                        const prlxFileName = `${fileObj.baseName}-prlx-${layerSuffix}.png`;
-                        if (fs.existsSync(path.join(prlxDir, prlxFileName))) {
-                            layersToRender.push({
-                                id: layerSuffix,
-                                path: `${activePool.path}/prlx/${prlxFileName}`,
-                                zIndex: currentZIndex++
-                            });
+                    const allPrlxFiles = fs.readdirSync(prlxDir);
+                    const prefix = `${fileObj.baseName}-prlx-b`;
+                    
+                    let bgLayers = [];
+                    let fgLayers = [];
+                    
+                    allPrlxFiles.forEach(f => {
+                        if (f.startsWith(prefix)) {
+                            const numStr = f.slice(prefix.length, f.lastIndexOf('.'));
+                            const n = parseInt(numStr, 10);
+                            
+                            if (!isNaN(n)) {
+                                if (n > 0) {
+                                    bgLayers.push({ id: `b${n}`, path: `${activePool.path}/prlx/${f}`, n });
+                                } else if (n < 0) {
+                                    fgLayers.push({ id: `b${n}`, path: `${activePool.path}/prlx/${f}`, n });
+                                }
+                            }
                         }
                     });
+
+                    // 1. Фоны (n > 0): Сортируем по убыванию (3, 2, 1), чтобы дальние легли первыми
+                    bgLayers.sort((a, b) => b.n - a.n);
+                    bgLayers.forEach(layer => {
+                        layersToRender.push({ id: layer.id, path: layer.path, zIndex: currentZIndex++ });
+                    });
+
+                    // 2. Герой (fg): Оставляем зазор по z-index
+                    currentZIndex += 10;
+                    layersToRender.push({ id: 'fg', path: file, zIndex: currentZIndex++ });
+
+                    // 3. Передние слои (n < 0): Сортируем по убыванию (-1, -2), чтобы -2 лег поверх -1
+                    currentZIndex += 10;
+                    fgLayers.sort((a, b) => b.n - a.n);
+                    fgLayers.forEach(layer => {
+                        layersToRender.push({ id: layer.id, path: layer.path, zIndex: currentZIndex++ });
+                    });
+                    
+                } else {
+                    layersToRender.push({ id: 'fg', path: file, zIndex: currentZIndex });
                 }
+            } else {
+                layersToRender.push({ id: 'fg', path: file, zIndex: currentZIndex });
             }
-            
-            layersToRender.push({ 
-                id: 'fg', 
-                path: file, 
-                zIndex: 10 
-            });
             
             let renderStart = absStart;
             let finalDur = duration + OVERLAP;
@@ -333,31 +372,42 @@ function log(msg) {
             let groupHTML = `\n<div id="wrap-${activePoolName}-${imageIndex}" class="anim-wrapper" style="${wrapperStyle}">\n`;
             
             layersToRender.forEach((layer) => {
-                const layerOverride = director.directorOverrides?.files?.[layer.path];
+                // ИСПОЛЬЗУЕМ УМНЫЙ ПОИСК OVERRIDES ДЛЯ КАЖДОГО ОТДЕЛЬНОГО СЛОЯ
+                const layerOverride = getOverride(layer.path);
+                
                 let finalMove = layerOverride?.movement || (layer.id === 'fg' ? baseMove : null);
                 
                 if (!finalMove && layer.id !== 'fg') {
                     const bgPoolKey = `allowedMovements_${layer.id}`;
                     const bgMoves = activePool[bgPoolKey] || ["none"];
-                    const shiftMap = { 'b1': 1, 'b2': 2, 'b3': 3 };
-                    const shift = shiftMap[layer.id] || 0;
+                    
+                    const layerN = parseInt(layer.id.replace('b', ''), 10);
+                    let shift = 0;
+                    if (!isNaN(layerN)) {
+                        shift = layerN > 0 ? layerN : (5 + Math.abs(layerN));
+                    }
                     const manualShift = layerOverride?.movementShift || 0;
                     finalMove = bgMoves[(imageIndex + shift + manualShift) % bgMoves.length];
                 }
                 
                 let layerAnimParts = [`${finalMove} ${durStr}s linear forwards`];
-                if (customEntrance || customExit) {
-                    if (customEntrance) layerAnimParts.push(`${customEntrance} ${durStr}s linear forwards`);
-                    if (customExit) layerAnimParts.push(`${customExit} ${durStr}s linear forwards`);
+                
+                const layerEntrance = layerOverride?.entrance || customEntrance;
+                const layerExit = layerOverride?.exit || customExit;
+                const layerAppear = layerOverride?.appearance || legacyAppear;
+
+                if (layerEntrance || layerExit) {
+                    if (layerEntrance) layerAnimParts.push(`${layerEntrance} ${durStr}s linear forwards`);
+                    if (layerExit) layerAnimParts.push(`${layerExit} ${durStr}s linear forwards`);
                 } else {
-                    const appear = isFirst ? "" : (legacyAppear || defaultAppear);
+                    const appear = isFirst ? "" : (layerAppear || defaultAppear);
                     if (appear) layerAnimParts.push(`${appear} ${durStr}s linear forwards`);
                 }
 
                 const animCss = `animation: ${layerAnimParts.join(', ')};`;
                 
                 let opacityCss = `opacity: var(--base-opacity);`;
-                if (!isFirst && (customEntrance || customExit || legacyAppear || defaultAppear)) {
+                if (!isFirst && (layerEntrance || layerExit || layerAppear || defaultAppear)) {
                     opacityCss = "opacity: 0;";
                 }
 
@@ -396,7 +446,7 @@ ${imagesHTML}
 </html>`;
 
         fs.writeFileSync(path.join(compDir, 'images_scene.html'), htmlOutput, 'utf8');
-        log(`✅ УСПЕХ! Нарратив собран с поддержкой ритмического магнита (субтитры + биты).`);
+        log(`✅ УСПЕХ! Нарратив собран. Параллакс b-N и умный поиск overrides работают.`);
 
     } catch (e) {
         console.error("❌ Ошибка в build_images.js:", e.message);

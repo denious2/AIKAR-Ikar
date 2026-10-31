@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 try {
-    console.log("=== СТАРТ ГЕНЕРАЦИИ INDEX.HTML (ДИНАМИЧЕСКИЕ СЛОИ) ===");
+    console.log("=== СТАРТ ГЕНЕРАЦИИ INDEX.HTML (МЯГКИЙ SHADOW CRUSH И КИНЕТИЧЕСКИЙ БАС) ===");
     const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
     const director = JSON.parse(fs.readFileSync('director-config.json', 'utf8'));
     const library = JSON.parse(fs.readFileSync('library-config.json', 'utf8'));
@@ -15,11 +15,34 @@ try {
     const testEnd = testStart + duration;
     const compDir = path.join(process.cwd(), 'compositions');
 
+    // --- ЧТЕНИЕ ОГИБАЮЩЕЙ БАСА (АУДИО-РЕАКТИВНОСТЬ) ---
+    let bassCss = '';
+    let rootBassAnimation = '';
+    try {
+        const bassPath = path.join(process.cwd(), 'bass.json');
+        if (fs.existsSync(bassPath)) {
+            const bassData = JSON.parse(fs.readFileSync(bassPath, 'utf8'));
+            const frames = bassData.frames;
+            if (frames && frames.length > 0) {
+                bassCss += `@keyframes global-bass-pulse {\n`;
+                frames.forEach((val, i) => {
+                    const percent = (i / (frames.length - 1)) * 100;
+                    bassCss += `  ${percent.toFixed(3)}% { --bass: ${val}; }\n`;
+                });
+                bassCss += `}\n`;
+                
+                const syncDuration = config.project.totalDuration; 
+                rootBassAnimation = `animation: global-bass-pulse ${syncDuration}s linear forwards;`;
+                console.log(`🔊 Аудио-реактивность (--bass) подключена! Кадров: ${frames.length}`);
+            }
+        }
+    } catch (e) {
+        console.log(`⚠️ Ошибка загрузки bass.json: ${e.message}`);
+    }
+
     // --- ДОСТАЕМ ЦВЕТОКОРРЕКЦИЮ (LUT) И НАСТРОЙКИ ВСПЫШЕК ---
     const colorGradeKey = config.effects?.colorGrade || "none";
     const colorGradeCss = library.effectsPool?.colorGrading?.[colorGradeKey] || "display: none;";
-    
-    // Бленд-мод для ритмических вспышек (защита от их отсутствия)
     const flashBlendMode = config.effects?.flashes?.blendMode || "normal";
 
     const structure = (director.songStructure || config.songStructure).sort((a, b) => a.time - b.time);
@@ -50,19 +73,13 @@ try {
         }
     }
 
-    // --- ЧТЕНИЕ ФИЗИКИ И СЛОЕВ АКЦЕНТОВ ---
     const accentsCssPath = path.join(compDir, 'accents_camera.css');
     const accentsHtmlPath = path.join(compDir, 'accents_scene.html');
     
-    // Подключаем CSS только если файл физически существует (сгенерирован)
     const cameraShakeCss = fs.existsSync(accentsCssPath) ? fs.readFileSync(accentsCssPath, 'utf8') : '';
     const shakeClass = fs.existsSync(accentsCssPath) ? 'global-shake-active' : '';
-
-    // >>> ИЗВЛЕКАЕМ РЕЖИМ НАЛОЖЕНИЯ ИЗ КОНФИГА <<<
     const accentsBlendMode = director.accents?.videoGlitches?.blendMode || "screen";
 
-    // >>> ДОБАВЛЯЕМ mix-blend-mode ПРЯМО НА ХОСТ-КОНТЕЙНЕР В INDEX.HTML <<<
-    // Подключаем HTML-слой акцентов только если он сгенерирован
     const accentsHtmlLayer = fs.existsSync(accentsHtmlPath) 
         ? `\n        <!-- 4.6 АКЦЕНТЫ (ВИДЕО-ГЛИТЧИ) -->\n        <div id="host-accents" data-composition-id="accents_scene" class="composition-layer clip" style="z-index: 9999; pointer-events: none; mix-blend-mode: ${accentsBlendMode};" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="46" data-composition-src="compositions/accents_scene.html"></div>` 
         : '';
@@ -73,10 +90,42 @@ try {
     <meta charset="utf-8">
     <title>${config.project.name}</title>
     <style>
-        body { margin: 0; background: #fdfdfd; overflow: hidden; }
+        :root {
+            --bass: 0;
+            ${rootBassAnimation}
+        }
+        body { margin: 0; background: #000; overflow: hidden; }
         #root { position: absolute; width: ${resW}px; height: ${resH}px; overflow: hidden; }
         .composition-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        
+        /* ========================================= */
+        /* SHADOW CRUSH (МЯГКИЕ ТЕНИ ПОД БАС)        */
+        /* ========================================= */
+        #shadow-crush-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000000;
+            mix-blend-mode: multiply; 
+            /* >>> ИСПРАВЛЕНО: Приглушили силу затемнения с 0.75 до 0.4 <<< */
+            opacity: calc(var(--bass) * 0.4); 
+            pointer-events: none;
+            /* Выше фона и картинок, но ниже субтитров и цветокора */
+            z-index: 9950; 
+            /* Резкое появление и тяжелое, вязкое затухание (0.3s) */
+            transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* ========================================= */
+        /* ТИПОГРАФИЧЕСКИЙ БАС (ГЛОБАЛЬНЫЙ КОНТЕЙНЕР)*/
+        /* ========================================= */
+        #host-subs {
+            transform: scale(calc(1 + var(--bass) * 0.04));
+            transition: transform 0.05s ease-out;
+            text-align: center; 
+        }
+
         ${cameraShakeCss}
+        ${bassCss}
     </style>
 </head>
 <body>
@@ -94,14 +143,17 @@ try {
         <!-- 3. ПЕРЕДНИЕ ЭФФЕКТЫ -->
         <div id="host-visuals-fg" data-composition-id="visuals_fg_scene" class="composition-layer clip ${shakeClass}" style="mix-blend-mode: multiply; z-index: 30;" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="3" data-composition-src="compositions/visuals_fg_scene.html"></div>
         
-        <!-- 4. ТЕКСТУРА: Пыль, Шум (С MULTIPLY) -->
+        <!-- 4. ТЕКСТУРА: Пыль, Шум -->
         <div id="host-dust" data-composition-id="dust_scene" class="composition-layer clip ${shakeClass}" style="mix-blend-mode: multiply; z-index: 90;" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="4" data-composition-src="compositions/dust_scene.html"></div>
 
         <!-- 4.5 РИТМИЧЕСКИЕ ВСПЫШКИ (STROBE) -->
         <div id="host-beats" data-composition-id="beats_scene" class="composition-layer clip" style="mix-blend-mode: ${flashBlendMode}; z-index: 95; pointer-events: none;" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="45" data-composition-src="compositions/beats_scene.html"></div>
 
-        <!-- 5. СУБТИТРЫ (Изолированы от тряски) -->
-        <div id="host-subs" data-composition-id="subs_scene" class="composition-layer clip" style="z-index: 100;" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="5" data-composition-src="compositions/subs_scene.html"></div>
+        <!-- >>> НОВЫЙ СЛОЙ: SHADOW CRUSH (УПЛОТНЕНИЕ ТЕНЕЙ) <<< -->
+        <div id="shadow-crush-overlay" class="clip" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}"></div>
+
+        <!-- 5. СУБТИТРЫ (Кинетический якорь) -->
+        <div id="host-subs" data-composition-id="subs_scene" class="composition-layer clip" style="z-index: 10000;" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="5" data-composition-src="compositions/subs_scene.html"></div>
         
         <!-- 6. ЦВЕТОКОРРЕКЦИЯ (LUT) -->
         <div id="host-color-grade" class="composition-layer clip" style="z-index: 9998; pointer-events: none; ${colorGradeCss}" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="6"></div>
@@ -117,7 +169,7 @@ try {
 </html>`;
 
     fs.writeFileSync('index.html', html, 'utf8');
-    console.log(`✅ index.html успешно сгенерирован (Режим наложения акцентов перенесен на мастер-хост).`);
+    console.log(`✅ index.html успешно сгенерирован (Внедрен мягкий Shadow Crush и Kinetic Anchor).`);
 } catch (e) {
     console.error("❌ Ошибка в build_index.js:", e.message);
     process.exit(1);
