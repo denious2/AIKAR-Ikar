@@ -5,7 +5,9 @@
   "type": "module",
   "main": "build_all.js",
   "scripts": {
-    "start": "node core/run.js"
+    "start": "node core/run.js",
+    "new-clip": "node core/init_clip.js",
+    "scan-media": "node core/utils/media_scanner.js"
   },
   "keywords": ["lyric video","musical video editor"],
   "author": "Rubber Gallus",

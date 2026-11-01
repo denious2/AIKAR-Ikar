@@ -140,7 +140,7 @@ const log = createLogger(rootDir);
                 time: start,
                 isSection: true,
                 title: `СЕКЦИЯ: ${block.name} [${block.type.toUpperCase()}]`,
-                desc: `Разрешенные слои: [${rules.allowedLayers.join(', ')}] | Блэкаут: ${rules.blackout ? 'ДА' : 'НЕТ'}`
+                desc: `Разрешенные слои: [${rules.allowedLayers.join(', ')}] | Блэкаут: ${rules.blackout ? 'ДА' : 'НЕТ'} | Фильтр: ${rules.globalFilter || 'По умолчанию'}`
             });
 
             if (rules.blackout) continue;
@@ -337,10 +337,34 @@ const log = createLogger(rootDir);
         });
 
         // ====================================================================
-        // 4. ФОРМАТИРОВАНИЕ В ТЕКСТ
+        // 4. ФОРМАТИРОВАНИЕ В ТЕКСТ (С НОВЫМИ БЛОКАМИ АТМОСФЕРЫ И НОД)
         // ====================================================================
         let outputText = `=== 🎬 РЕЖИССЕРСКИЙ ЛИСТ (CUE SHEET) — ${isTest ? "ТЕСТОВЫЙ РЕЖИМ" : "ПОЛНЫЙ РЕНДЕР"} ===\n`;
-        outputText += `Общая длительность: ${totalDuration} сек | Окно Магнита: [${MIN_IMG_DURATION}s - ${MAX_IMG_DURATION}s]\n`;
+        outputText += `Общая длительность: ${totalDuration} сек | Окно Магнита: [${MIN_IMG_DURATION}s - ${MAX_IMG_DURATION}s]\n\n`;
+        
+        // --- НОВЫЙ БЛОК: АТМОСФЕРА И LUT ---
+        const activeLighting = config.effects?.lightingStyle || "static_lamp";
+        const activeColorGrade = config.effects?.colorGrade || "none";
+        const activeNoise = config.effects?.noiseStyle || "soft_white";
+        
+        outputText += `=== 🎨 ГЛОБАЛЬНАЯ АТМОСФЕРА ===\n`;
+        outputText += ` Цветокоррекция (LUT): ${activeColorGrade}\n`;
+        outputText += ` Освещение:          ${activeLighting}\n`;
+        outputText += ` Пленочный шум:      ${activeNoise}\n\n`;
+
+        // --- НОВЫЙ БЛОК: НОДЫ AUDIO REACTORS ---
+        const audioReactors = director.audioReactors || config.audioReactors || { enabled: false, nodes: [] };
+        if (audioReactors.enabled && audioReactors.nodes && audioReactors.nodes.length > 0) {
+            outputText += `=== 🎛️ АКТИВНЫЕ НОДЫ (AUDIO REACTORS) ===\n`;
+            audioReactors.nodes.forEach(node => {
+                outputText += ` [${node.name || 'Нода'}] -> Target: ${node.target} | Prop: ${node.cssProperty}\n`;
+                if (node.description) outputText += `   * ${node.description}\n`;
+                outputText += `   * Formula: ${node.formula}\n\n`;
+            });
+        } else {
+            outputText += `=== 🎛️ АКТИВНЫЕ НОДЫ: Отключены или отсутствуют ===\n\n`;
+        }
+
         outputText += `================================================================================\n`;
 
         let lastTime = -1;
@@ -395,6 +419,6 @@ const log = createLogger(rootDir);
         log(`✅ УСПЕХ! Режиссерский лист сгенерирован: ${outputPath}`);
 
     } catch (e) {
-        console.error("❌ Ошибка в build_info.js:", e.message);
+        console.error("❌ Ошибка в info.js:", e.message);
     }
 })();

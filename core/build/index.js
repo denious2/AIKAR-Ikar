@@ -14,6 +14,10 @@ try {
     const testStart = isTest ? config.testMode.start : 0;
     const testEnd = testStart + duration;
     
+    // Ключевое исправление: смещение для внутреннего времени слоев (data-in)
+    const renderOffset = testStart;
+    const renderEnd = renderOffset + duration;
+    
     const compDir = path.join(rootDir, 'compositions');
 
     // 1. Достаем собранный CSS из нового Node Compiler (reactors.js)
@@ -32,7 +36,7 @@ try {
     const accentsBlendMode = director.accents?.videoGlitches?.blendMode || "screen";
 
     const accentsHtmlLayer = fs.existsSync(accentsHtmlPath) 
-        ? `\n        <!-- 4.6 АКЦЕНТЫ -->\n        <div id="host-accents" data-composition-id="accents_scene" class="composition-layer clip" style="z-index: 9999; pointer-events: none; mix-blend-mode: ${accentsBlendMode};" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="46" data-composition-src="compositions/accents_scene.html"></div>` 
+        ? `\n        <!-- 4.6 АКЦЕНТЫ -->\n        <div id="host-accents" data-composition-id="accents_scene" class="composition-layer clip" style="z-index: 9999; pointer-events: none; mix-blend-mode: ${accentsBlendMode};" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}" data-track-index="46" data-composition-src="compositions/accents_scene.html"></div>` 
         : '';
 
     // 3. Глобальные фильтры (зависят от секций трека)
@@ -56,6 +60,7 @@ try {
             const blockDur = end - start;
             
             if (blockDur > 0) {
+                // Если мы в тесте, глобальный фильтр должен смещаться относительно старта теста
                 const renderStart = isTest ? (start - testStart) : start;
                 globalFilterLayers += `\n        <!-- ГЛОБАЛЬНЫЙ ФИЛЬТР (${block.name}) -->\n        <div id="global-filter-${i}" class="composition-layer clip" style="z-index: 9999; pointer-events: none; ${filterCss}" data-in="0" data-out="${blockDur.toFixed(3)}" data-start="${renderStart.toFixed(3)}" data-duration="${blockDur.toFixed(3)}" data-track-index="10"></div>\n`;
             }
@@ -89,18 +94,19 @@ try {
     </style>
 </head>
 <body>
+    <!-- ВАЖНО: В тестовом режиме data-in смещается на testStart (renderOffset) -->
     <div id="root" data-composition-id="root_scene" data-width="${resW}" data-height="${resH}" data-duration="${duration}">
         
-        <div id="host-audio" data-composition-id="audio_scene" class="composition-layer clip" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="-1" data-composition-src="compositions/audio_scene.html"></div>
-        <div id="host-visuals-bg" data-composition-id="visuals_bg_scene" class="composition-layer clip ${shakeClass}" style="mix-blend-mode: multiply; z-index: 10;" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="1" data-composition-src="compositions/visuals_bg_scene.html"></div>
-        <div id="host-images" data-composition-id="images_scene" class="composition-layer clip ${shakeClass}" style="z-index: 20;" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="2" data-composition-src="compositions/images_scene.html"></div>
-        <div id="host-visuals-fg" data-composition-id="visuals_fg_scene" class="composition-layer clip ${shakeClass}" style="mix-blend-mode: multiply; z-index: 30;" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="3" data-composition-src="compositions/visuals_fg_scene.html"></div>
-        <div id="host-dust" data-composition-id="dust_scene" class="composition-layer clip ${shakeClass}" style="mix-blend-mode: multiply; z-index: 90;" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="4" data-composition-src="compositions/dust_scene.html"></div>
-        <div id="host-beats" data-composition-id="beats_scene" class="composition-layer clip" style="mix-blend-mode: ${flashBlendMode}; z-index: 95; pointer-events: none;" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="45" data-composition-src="compositions/beats_scene.html"></div>
+        <div id="host-audio" data-composition-id="audio_scene" class="composition-layer clip" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}" data-track-index="-1" data-composition-src="compositions/audio_scene.html"></div>
+        <div id="host-visuals-bg" data-composition-id="visuals_bg_scene" class="composition-layer clip ${shakeClass}" style="mix-blend-mode: multiply; z-index: 10;" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}" data-track-index="1" data-composition-src="compositions/visuals_bg_scene.html"></div>
+        <div id="host-images" data-composition-id="images_scene" class="composition-layer clip ${shakeClass}" style="z-index: 20;" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}" data-track-index="2" data-composition-src="compositions/images_scene.html"></div>
+        <div id="host-visuals-fg" data-composition-id="visuals_fg_scene" class="composition-layer clip ${shakeClass}" style="mix-blend-mode: multiply; z-index: 30;" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}" data-track-index="3" data-composition-src="compositions/visuals_fg_scene.html"></div>
+        <div id="host-dust" data-composition-id="dust_scene" class="composition-layer clip ${shakeClass}" style="mix-blend-mode: multiply; z-index: 90;" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}" data-track-index="4" data-composition-src="compositions/dust_scene.html"></div>
+        <div id="host-beats" data-composition-id="beats_scene" class="composition-layer clip" style="mix-blend-mode: ${flashBlendMode}; z-index: 95; pointer-events: none;" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}" data-track-index="45" data-composition-src="compositions/beats_scene.html"></div>
         
-        <div id="shadow-crush-overlay" class="clip" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}"></div>
-        <div id="host-subs" data-composition-id="subs_scene" class="composition-layer clip" style="z-index: 10000;" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="5" data-composition-src="compositions/subs_scene.html"></div>
-        <div id="host-color-grade" class="composition-layer clip" style="z-index: 9998; pointer-events: none; ${colorGradeCss}" data-in="0" data-out="${duration}" data-start="0" data-duration="${duration}" data-track-index="6"></div>
+        <div id="shadow-crush-overlay" class="clip" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}"></div>
+        <div id="host-subs" data-composition-id="subs_scene" class="composition-layer clip" style="z-index: 10000;" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}" data-track-index="5" data-composition-src="compositions/subs_scene.html"></div>
+        <div id="host-color-grade" class="composition-layer clip" style="z-index: 9998; pointer-events: none; ${colorGradeCss}" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}" data-track-index="6"></div>
 
         ${accentsHtmlLayer}
         ${globalFilterLayers}
@@ -114,7 +120,7 @@ try {
 
     const indexPath = path.join(rootDir, 'index.html');
     fs.writeFileSync(indexPath, html, 'utf8');
-    console.log(`✅ ${indexPath} успешно сгенерирован.`);
+    console.log(`✅ ${indexPath} успешно сгенерирован (Смещение теста: ${renderOffset}s).`);
 } catch (e) {
     console.error("❌ Ошибка в build_index.js:", e.message);
     process.exit(1);

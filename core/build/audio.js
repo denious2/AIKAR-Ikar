@@ -1,49 +1,67 @@
 import fs from 'fs';
 import path from 'path';
-import { createLogger, loadConfigs } from '../config_loader.js';
-
-const rootDir = process.cwd();
-const log = createLogger(rootDir);
+import { loadConfigs } from '../config_loader.js';
 
 try {
-    log("=== СТАРТ СБОРКИ АУДИО (АВТОНОМНАЯ СЦЕНА + TEST MODE) ===");
-    
-    // Используем нашу утилиту для загрузки конфигов
+    console.log("=== СТАРТ ГЕНЕРАЦИИ AUDIO_SCENE.HTML ===");
+    const rootDir = process.cwd();
     const { config } = loadConfigs(rootDir);
-    const compDir = path.join(rootDir, 'compositions');
     
-    const audioFile = config.media.audioFile;
     const isTest = config.testMode && config.testMode.enabled;
-    
-    // Высчитываем тайминги с учетом тестового режима
-    const testStart = isTest ? config.testMode.start : 0;
     const duration = isTest ? config.testMode.duration : config.project.totalDuration;
+    const testStart = isTest ? config.testMode.start : 0;
     
-    // Откуда начинать читать медиа-файл и где заканчивать
-    const audioIn = testStart;
-    const audioOut = testStart + duration;
+    const compDir = path.join(rootDir, 'compositions');
+    if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
+
+    // БЕРЕМ ПУТЬ СТРОГО ИЗ КОНФИГА
+    const audioFileRel = config.media?.audioFile; 
+    let audioFile = '';
+
+    if (audioFileRel) {
+        const absoluteAudioPath = path.join(rootDir, audioFileRel);
+        if (fs.existsSync(absoluteAudioPath)) {
+            // Преобразуем путь для HTML (учитывая, что html лежит в папке compositions/)
+            audioFile = `../${audioFileRel.replace(/\\/g, '/')}`;
+            console.log(`🎵 Выбран основной трек из конфига: ${audioFileRel}`);
+        } else {
+            console.warn(`⚠️ ВНИМАНИЕ: Файл ${audioFileRel}, указанный в config.json, не существует на диске!`);
+        }
+    } else {
+        console.warn("⚠️ ВНИМАНИЕ: В config.json не заполнен параметр media.audioFile!");
+    }
+
+    const dataIn = isTest ? testStart : 0;
 
     const html = `<!DOCTYPE html>
 <html>
 <head>
-    <style>body { margin: 0; background: transparent; overflow: hidden; }</style>
+    <meta charset="utf-8">
+    <style>
+        body { margin: 0; background: transparent; overflow: hidden; }
+        #root { position: absolute; width: 100%; height: 100%; }
+        #main-audio { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
+    </style>
 </head>
 <body>
-    <!-- Слой -1 для аудио. data-in смещается, если включен testMode -->
-    <div id="root" data-composition-id="audio_scene" data-width="${config.project.resolution.width}" data-height="${config.project.resolution.height}" data-duration="${duration}">
-        <audio id="main-audio" src="../${audioFile}" data-in="${audioIn.toFixed(3)}" data-out="${audioOut.toFixed(3)}" data-start="0" data-duration="${duration.toFixed(3)}" data-track-index="-1"></audio>
+    <div id="root" data-composition-id="audio_scene">
+        ${audioFile 
+            ? `<audio id="main-audio" class="clip" src="${audioFile}" data-in="${dataIn}" data-out="${dataIn + duration}" data-start="0" data-duration="${duration}"></audio>` 
+            : ``
+        }
     </div>
     <script>
         window.__timelines = window.__timelines || {};
-        window.__timelines["audio_scene"] = document.querySelector('[data-composition-id="audio_scene"]');
+        window.__timelines["audio_scene"] = document.querySelector('#root');
     </script>
 </body>
 </html>`;
 
-    if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
-    fs.writeFileSync(path.join(compDir, 'audio_scene.html'), html, 'utf8');
+    const outputPath = path.join(compDir, 'audio_scene.html');
+    fs.writeFileSync(outputPath, html, 'utf8');
     
-    log(`✅ УСПЕХ! Аудио-сцена собрана (${audioFile}). Тайминг в треке: ${audioIn}s -> ${audioOut}s`);
+    console.log(`✅ audio_scene.html сгенерирован (Смещение: ${dataIn}s)`);
 } catch (e) {
-    log(`❌ Ошибка: ${e.message}`);
+    console.error("❌ Ошибка в audio.js:", e.message);
+    process.exit(1);
 }

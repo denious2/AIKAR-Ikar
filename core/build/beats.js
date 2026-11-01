@@ -6,28 +6,28 @@ const rootDir = process.cwd();
 const log = createLogger(rootDir);
 
 try {
-    log("=== СТАРТ СБОРКИ БИТОВ (МОДУЛЬНАЯ ВЕРСИЯ: ИЗОЛИРОВАННЫЕ КЛИПЫ) ===");
+    log("=== СТАРТ СБОРКИ БИТОВ (МОДУЛЬНАЯ ВЕРСИЯ: DIRECTOR CONFIG INTEGRATION) ===");
 
-    // Используем нашу утилиту для загрузки конфигов
-    const { config } = loadConfigs(rootDir);
+    // Используем наш ЕДИНЫЙ загрузчик конфигураций
+    const { config, director } = loadConfigs(rootDir);
     const isTest = config.testMode && config.testMode.enabled;
     const totalDuration = isTest ? config.testMode.duration : config.project.totalDuration;
     const testStart = isTest ? config.testMode.start : 0;
     const testEnd = testStart + totalDuration;
     const compDir = path.join(rootDir, 'compositions');
 
-    // Используем нашу утилиту для загрузки битов
+    // Загружаем биты через утилиту
     let beats = loadBeats(rootDir, log);
 
     const baseBeats = beats.filter(time => isTest ? (time >= testStart && time <= testEnd) : (time <= totalDuration));
     
-    const flashConfig = config.effects?.flashes || {};
-    const flashMultiplier = flashConfig.multiplier || config.effects?.flashMultiplier || 1;
-    // ДЛЯ ТЕСТА: принудительно ставим solid и белый свет, чтобы точно их увидеть
+    // Берем настройки вспышек из режиссерского пульта (director-config -> beatsConfig), с фолбэком на config.json
+    const flashConfig = director.beatsConfig || config.effects?.flashes || {};
+    const flashMultiplier = flashConfig.multiplier || 1;
     const flashType = flashConfig.type || "solid"; 
     const flashDynamics = flashConfig.dynamics || "sharp";
     const flashColor = flashConfig.color || "#ffffff";
-    const flashIntensity = flashConfig.intensity || 0.4; // 40% яркости ударит по глазам
+    const flashIntensity = flashConfig.intensity || 0.4;
 
     let activeBeats = [];
 
@@ -59,14 +59,13 @@ try {
         const renderOut = renderStart + flashDuration;
 
         // === ИЗОЛЯЦИЯ ОТ ДВИЖКА ===
-        // Внешний div - только для Hyperframes. Внутренний - только для анимации.
         beatsHTML += `
         <div id="flash-clip-${index}" class="clip" 
-             data-in="${renderStart.toFixed(3)}" 
-             data-out="${renderOut.toFixed(3)}" 
-             data-start="${renderStart.toFixed(3)}" 
-             data-duration="${flashDuration.toFixed(3)}">
-             <div class="beat-flash"></div>
+            data-in="${renderStart.toFixed(3)}" 
+            data-out="${renderOut.toFixed(3)}" 
+            data-start="${renderStart.toFixed(3)}" 
+            data-duration="${flashDuration.toFixed(3)}">
+            <div class="beat-flash"></div>
         </div>\n`;
     });
 
@@ -93,7 +92,6 @@ try {
             width: 100%; height: 100%;
             ${backgroundStyle}
             opacity: 0; pointer-events: none;
-            /* Анимация сработает в момент активации clip'а */
             animation: pulseVignette ${flashDuration}s ease-out forwards;
         }
         
@@ -117,7 +115,7 @@ ${beatsHTML}    </div>
     if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
     fs.writeFileSync(path.join(compDir, 'beats_scene.html'), html, 'utf8');
     
-    log(`✅ УСПЕХ! Вспышки надежно изолированы. Цвет: ${flashColor}`);
+    log(`✅ УСПЕХ! Вспышки скомпилированы. Множитель: ${flashMultiplier}, Цвет: ${flashColor}`);
 } catch (e) { 
-    log(`❌ Ошибка: ${e.message}`); 
+    log(`❌ Ошибка в beats.js: ${e.message}`); 
 }

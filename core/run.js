@@ -16,8 +16,11 @@ const resW = config.project.resolution.width;
 const resH = config.project.resolution.height;
 const safeProjectName = config.project.name.replace(/[:\\/*?"<>|]/g, '-');
 
-// Проверяем тестовый режим и меняем имя файла
+// Проверяем тестовый режим
 const isTest = config.testMode && config.testMode.enabled;
+const testStart = isTest ? config.testMode.start : 0;
+const testDuration = isTest ? config.testMode.duration : config.project.totalDuration;
+
 const outputFileName = isTest 
     ? `${safeProjectName}_TEST_${resW}x${resH}.mp4` 
     : `${safeProjectName}_${resW}x${resH}.mp4`; 
@@ -25,7 +28,7 @@ const outputFileName = isTest
 // Читаем настройки рендера
 const hideDebugLogs = config.render?.hideDebugLogs !== false;
 const renderQuality = config.render?.quality; 
-const renderFps = config.render?.fps;         
+const renderFps = config.render?.fps;        
 
 // >>> Обновлены пути к скриптам для модульной архитектуры <<<
 const scripts = [
@@ -37,7 +40,7 @@ const scripts = [
     path.join('core', 'build', 'dust.js'),       
     path.join('core', 'build', 'subs.js'),
     path.join('core', 'build', 'info.js'),
-	path.join('core', 'build', 'reactors.js'),
+    path.join('core', 'build', 'reactors.js'),
     path.join('core', 'build', 'index.js')
 ];
 
@@ -75,13 +78,19 @@ async function runPipeline() {
             console.log(`🎥 Частота кадров: ${renderFps} FPS`);
         }
         
+        // ВАЖНО: Убраны неподдерживаемые флаги --start и --duration
+        if (isTest) {
+            console.log(`🧪 ТЕСТОВЫЙ РЕЖИМ: Старт с ${testStart}s, Длительность ${testDuration}s`);
+        }
+        
         renderArgs.push('-o', outputFileName);
 
         console.log(`⏳ Идет рендер файла: "${outputFileName}". Технический мусор скрыт, ожидайте прогресс...\n`);
         
         // Запускаем рендер асинхронно через spawn с перехватом потока
         await new Promise((resolve, reject) => {
-            const renderProcess = spawn('npx', renderArgs, { shell: true, cwd: rootDir });
+            // Использование shell: process.platform === 'win32' вместо true помогает избежать Warning
+            const renderProcess = spawn('npx', renderArgs, { shell: process.platform === 'win32', cwd: rootDir });
 
             const filterOutput = (data) => {
                 const text = data.toString();

@@ -25,6 +25,14 @@
     "outro":     { "allowedLayers": [2, 6, 7], "blackout": false, "globalFilter": "color_burn_middle" },
     "copyright": { "allowedLayers": [5], "blackout": false }    
   },
+  "beatsConfig": {
+    "enabled": true,
+    "multiplier": 1,
+    "type": "solid",
+    "dynamics": "sharp",
+    "color": "#ffffff",
+    "intensity": 0.4
+  },
   "accents": {
     "enabled": true,
     "sourceFile": "accents.json",
@@ -48,30 +56,48 @@
     "enabled": true,
     "nodes": [
       {
+        "name": "Пульсация атмосферы от бита",
+        "description": "Слегка увеличивает масштаб всего слоя шумов/текстур в момент удара бочки.",
+        "target": ".texture-wrapper",
+        "cssProperty": "transform",
+        "formula": "scale(calc(1 + var(--beat) * 0.04))",
+        "transition": "transform 0.05s ease-out"
+      },
+      {
+        "name": "Затемнение теней под бас",
+        "description": "Уплотняет тени по всему кадру (оверлей), усиливая глубину на низких частотах.",
         "target": "#shadow-crush-overlay",
         "cssProperty": "opacity",
         "formula": "calc(var(--bass) * 0.4)",
         "transition": "opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)"
       },
       {
+        "name": "Пружинящие субтитры",
+        "description": "Заставляет текст субтитров слегка увеличиваться и покачиваться в такт басу.",
         "target": "#host-subs",
         "cssProperty": "transform",
         "formula": "scale(calc(1 + var(--bass) * 0.04))",
         "transition": "transform 0.05s ease-out"
       },
       {
+        "name": "Дыхание фона (Мелодия)",
+        "description": "Размывает задний план (слои параллакса b1-b3) под мягкие партии пэдов или синтезатора.",
         "target": ".layer-bg",
         "cssProperty": "filter",
         "formula": "blur(calc(var(--melody) * 6px))",
         "transition": "filter 0.1s ease-out"
       },
       {
+        "name": "Подсветка героя (Вокал)",
+        "description": "Делает главный объект/картинку чуть ярче и выразительнее, когда в песне звучит вокал.",
         "target": ".layer-hero",
         "cssProperty": "filter",
         "formula": "brightness(calc(1 + var(--vocal) * 0.25))",
         "transition": "filter 0.05s ease-out"
       },
       {
+        "name": "Толчок картинок по битам",
+        "description": "Резко, но плавно подталкивает весь блок нарратива вперед при каждом ударе бочки.",
         "target": "#host-images",
         "cssProperty": "transform",
         "formula": "scale(calc(1 + var(--beat) * 0.03))",

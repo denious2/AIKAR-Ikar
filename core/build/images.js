@@ -120,7 +120,7 @@ const log = createLogger(rootDir);
             const baseMove = fileOverride?.movement || allowedMoves[(imageIndex + localShift) % allowedMoves.length];
 
             const baseLayer = activePool.layerIndex || 2;
-            const trackIdx = (baseLayer * 10) + (imageIndex % 2); 
+            const trackIdx = (baseLayer * 1000) + imageIndex; 
             const isFirst = (absStart === 0);
             const isVideo = file.toLowerCase().endsWith('.mp4');
             

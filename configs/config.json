@@ -12,7 +12,7 @@
   },
   "render": { 
     "_options_quality": ["draft", "standard", "high"],
-    "quality": "standard",
+    "quality": "draft",
     "hideDebugLogs": true,
     "fps": 30
   },

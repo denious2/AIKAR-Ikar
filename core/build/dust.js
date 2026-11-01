@@ -1,25 +1,22 @@
 import fs from 'fs';
 import path from 'path';
-import { createLogger, loadConfigs, loadBeats } from '../config_loader.js';
+import { createLogger, loadConfigs } from '../config_loader.js';
 
 const rootDir = process.cwd();
 const log = createLogger(rootDir);
 
 try {
-    log("=== СТАРТ СБОРКИ ПЫЛИ И ЦВЕТОКОРРЕКЦИИ (LUT, NOISE & BEAT SYNC) ===");
+    log("=== СТАРТ СБОРКИ АТМОСФЕРЫ (DUST & NOISE ENGINE) ===");
     
-    // Используем нашу утилиту для загрузки конфигов
     const { config, library } = loadConfigs(rootDir);
     
     const isTest = config.testMode && config.testMode.enabled;
     const totalDuration = isTest ? config.testMode.duration : config.project.totalDuration;
-    const testStart = isTest ? config.testMode.start : 0;
-    const testEnd = testStart + totalDuration;
     
     const particlesCount = 50; 
     const compDir = path.join(rootDir, 'compositions');
 
-    // === ВЫТЯГИВАЕМ ДИЗАЙН ИЗ БИБЛИОТЕКИ ===
+    // Вытягиваем дизайн из библиотеки
     const activeLighting = config.effects.lightingStyle || "static_lamp";
     const activeColorGrade = config.effects.colorGrade || "none";
     const activeNoise = config.effects.noiseStyle || "soft_white";
@@ -29,27 +26,7 @@ try {
     const noiseCSS = library.effectsPool?.noiseStyles?.[activeNoise] || "";
     const swingingLampKeyframes = library.effectsPool?.movements?.swingingLamp || "";
 
-    // Используем нашу утилиту для загрузки битов
-    let trackBeats = loadBeats(rootDir, log);
-
-    let beatCSS = "";
-    let wrapperStyle = "";
-    const activeBeats = trackBeats.filter(b => b >= testStart && b <= testEnd);
-    
-    if (activeBeats.length > 0) {
-        beatCSS += `@keyframes dustPump {\n  0%, 100% { filter: brightness(1); transform: scale(1); }\n`;
-        activeBeats.forEach(b => {
-            const relBeat = b - testStart;
-            const pPeak = (relBeat / totalDuration) * 100;
-            const pEnd = pPeak + ((0.2 / totalDuration) * 100); 
-            if (pPeak >= 0 && pPeak <= 100) beatCSS += `  ${pPeak.toFixed(2)}% { filter: brightness(0.5); transform: scale(1.05); }\n`;
-            if (pEnd >= 0 && pEnd <= 100) beatCSS += `  ${pEnd.toFixed(2)}% { filter: brightness(1); transform: scale(1); }\n`;
-        });
-        beatCSS += `}\n`;
-        wrapperStyle = `animation: dustPump ${totalDuration}s linear forwards;`;
-    }
-
-    // Подтягиваем SVG-фильтры (включая boil)
+    // Подтягиваем SVG-фильтры
     let svgFiltersHTML = `<svg style="position: absolute; width: 0; height: 0;" xmlns="http://www.w3.org/2000/svg">
     <filter id="boil">
         <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="3" result="noise" />
@@ -66,6 +43,8 @@ try {
     <style>
         body { margin: 0; background: transparent; overflow: hidden; }
         #root { position: absolute; width: 100vw; height: 100vh; overflow: hidden; pointer-events: none; }
+        
+        /* Обертка теперь управляется нодами из reactors.css (переменная --beat) */
         .texture-wrapper { position: absolute; width: 100%; height: 100%; }
 
         .vignette-layer {
@@ -84,27 +63,18 @@ try {
             ${swingingLampKeyframes}
         }
 
-        /* 1. ДИНАМИЧЕСКИЙ ШУМ ИЗ КОНФИГА */
         .noise-layer {
             position: absolute; top: -10%; left: -10%; width: 120%; height: 120%;
             z-index: 12;
             ${noiseCSS}
         }
 
-        /* 2. ГЛОБАЛЬНЫЙ КОРРЕКТИРУЮЩИЙ СЛОЙ ЦВЕТА (LUT) */
         .color-grading-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 15;
             pointer-events: none;
             ${colorGradingCSS}
         }
-
-        @keyframes filmJitter {
-            0% { transform: translate(0, 0); } 33% { transform: translate(-1%, 1%); }
-            66% { transform: translate(1%, -1%); } 100% { transform: translate(0, 0); }
-        }
-
-        ${beatCSS}
 
         .dust {
             position: absolute; background: #050505; border-radius: 40%; 
@@ -127,7 +97,7 @@ try {
         <div class="table-lamp-light" style="--total-dur: ${totalDuration}s;"></div>
         <div class="noise-layer"></div>
         <div class="color-grading-layer"></div>
-        <div class="texture-wrapper" style="${wrapperStyle}">
+        <div class="texture-wrapper">
 `;
 
     for (let i = 0; i < particlesCount; i++) {
@@ -137,10 +107,10 @@ try {
         const duration = (Math.random() * 15 + 10).toFixed(2); 
         const delay = (Math.random() * -20).toFixed(2); 
         const maxOpacity = (Math.random() * 0.1 + 0.05).toFixed(2); 
-        html += `            <div class="dust" style="width: ${size}px; height: ${size}px; left: ${left}vw; top: ${top}vh; --max-opacity: ${maxOpacity}; animation-duration: ${duration}s; animation-delay: ${delay}s;"></div>\n`;
+        html += `           <div class="dust" style="width: ${size}px; height: ${size}px; left: ${left}vw; top: ${top}vh; --max-opacity: ${maxOpacity}; animation-duration: ${duration}s; animation-delay: ${delay}s;"></div>\n`;
     }
 
-    html += `        </div></div>
+    html += `       </div></div>
     <script>
         window.__timelines = window.__timelines || {};
         window.__timelines["dust_scene"] = document.querySelector('[data-composition-id="dust_scene"]');
@@ -150,7 +120,7 @@ try {
     if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
     fs.writeFileSync(path.join(compDir, 'dust_scene.html'), html, 'utf8');
     
-    log(`✅ УСПЕХ! Сгенерированы атмосфера (Цвет: ${activeColorGrade}, Шум: ${activeNoise}). С пульсацией по биту.`);
+    log(`✅ УСПЕХ! Атмосфера очищена от захардкоженных битов. Цвет: ${activeColorGrade}`);
 } catch (e) { 
-    log(`❌ Ошибка: ${e.message}`); 
+    log(`❌ Ошибка в dust.js: ${e.message}`); 
 }
