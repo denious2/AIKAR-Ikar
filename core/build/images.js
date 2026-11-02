@@ -17,7 +17,19 @@ const log = createLogger(rootDir);
         // 1. Загрузка конфигураций
         const { config, director, library } = loadConfigs(rootDir);
         const beats = loadBeats(rootDir, log);
-        const subtitleStarts = loadSubtitlesStarts(rootDir, log);
+        
+        // Мягкая загрузка субтитров (защита от отсутствия файла)
+        let subtitleStarts = [];
+        try {
+            const subPath = config.media?.subtitlesFile;
+            if (subPath && subPath.trim() !== '') {
+                subtitleStarts = loadSubtitlesStarts(rootDir, log);
+            } else {
+                log("ℹ️ Магнит ритма: Субтитры отключены (пустой путь), опираемся только на биты.");
+            }
+        } catch (subErr) {
+            log(`ℹ️ Магнит ритма: Файл субтитров не найден. Опираемся только на биты.`);
+        }
         
         const isTest = config.testMode && config.testMode.enabled;
         const totalDuration = isTest ? config.testMode.duration : config.project.totalDuration;

@@ -14,7 +14,18 @@ const log = createLogger(rootDir);
         // Используем утилиты для загрузки всех конфигов и таймингов
         const { config, director, library } = loadConfigs(rootDir);
         const beats = loadBeats(rootDir, log);
-        const subtitleStarts = loadSubtitlesStarts(rootDir, log);
+        
+        // --- БЕЗОПАСНАЯ ЗАГРУЗКА СУБТИТРОВ ---
+        let subtitleStarts = [];
+        try {
+            const subPath = config.media?.subtitlesFile;
+            if (subPath && subPath.trim() !== '') {
+                subtitleStarts = loadSubtitlesStarts(rootDir, log);
+            }
+        } catch (subErr) {
+            // Тихо проглатываем ошибку, если файла нет, магнит будет работать по битам
+        }
+        // -------------------------------------
         
         const isTest = config.testMode && config.testMode.enabled;
         const totalDuration = isTest ? config.testMode.duration : config.project.totalDuration;

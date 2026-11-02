@@ -16,13 +16,23 @@ try {
     const testEnd = testStart + totalDuration;
     const compDir = path.join(rootDir, 'compositions');
 
+    // Берем настройки вспышек из режиссерского пульта (director-config -> beatsConfig), с фолбэком на config.json
+    const flashConfig = director.beatsConfig || config.effects?.flashes || {};
+
+    // === ПРОВЕРКА ФЛАГА ENABLED (Исправляет проблему с выключением) ===
+    if (flashConfig.enabled === false) {
+        log("⚠️ Модуль вспышек (beats.js) отключен в конфиге (enabled: false). Очищаем сцену.");
+        let emptyHtml = `<!DOCTYPE html><html><body><div id="root" data-composition-id="beats_scene" data-width="${config.project.resolution.width}" data-height="${config.project.resolution.height}" data-duration="${totalDuration}"></div><script>window.__timelines = window.__timelines || {}; window.__timelines["beats_scene"] = document.querySelector('#root');</script></body></html>`;
+        if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
+        fs.writeFileSync(path.join(compDir, 'beats_scene.html'), emptyHtml, 'utf8');
+        process.exit(0);
+    }
+
     // Загружаем биты через утилиту
     let beats = loadBeats(rootDir, log);
 
     const baseBeats = beats.filter(time => isTest ? (time >= testStart && time <= testEnd) : (time <= totalDuration));
     
-    // Берем настройки вспышек из режиссерского пульта (director-config -> beatsConfig), с фолбэком на config.json
-    const flashConfig = director.beatsConfig || config.effects?.flashes || {};
     const flashMultiplier = flashConfig.multiplier || 1;
     const flashType = flashConfig.type || "solid"; 
     const flashDynamics = flashConfig.dynamics || "sharp";
@@ -51,14 +61,13 @@ try {
     }
 
     let beatsHTML = '';
-    const flashDuration = 0.6; 
+	const flashDuration = flashConfig.duration || 0.08; 
 
     activeBeats.forEach((time, index) => {
         const renderStart = isTest ? (time - testStart) : time;
         if (renderStart < 0 || renderStart > totalDuration) return;
         const renderOut = renderStart + flashDuration;
 
-        // === ИЗОЛЯЦИЯ ОТ ДВИЖКА ===
         beatsHTML += `
         <div id="flash-clip-${index}" class="clip" 
             data-in="${renderStart.toFixed(3)}" 

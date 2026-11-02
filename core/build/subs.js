@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-
 import { createLogger, loadConfigs } from '../config_loader.js';
 
 const rootDir = process.cwd();
@@ -12,11 +11,42 @@ try {
     // Используем нашу утилиту для загрузки конфигов
     const { config, director, library } = loadConfigs(rootDir);
     const compDir = path.join(rootDir, 'compositions');
-    
-    const subsFile = path.join(rootDir, config.media.subtitlesFile);
-    if (!fs.existsSync(subsFile)) {
-        throw new Error(`Файл субтитров не найден по пути: ${subsFile}`);
+    if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
+
+    const outputPath = path.join(compDir, 'subs_scene.html');
+
+    // --- ЗАЩИТА ОТ ОТСУТСТВИЯ СУБТИТРОВ ---
+    const generateEmptyScene = () => {
+        const emptyHtml = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body>
+    <div id="root" data-composition-id="subs_scene"></div>
+    <script>
+        window.__timelines = window.__timelines || {};
+        window.__timelines["subs_scene"] = document.querySelector('#root');
+    </script>
+</body>
+</html>`;
+        fs.writeFileSync(outputPath, emptyHtml, 'utf8');
+        log("ℹ️ Субтитры отключены или файл не найден. Сгенерирована пустая сцена.");
+    };
+
+    const subPathRel = config.media?.subtitlesFile;
+
+    if (!subPathRel || subPathRel.trim() === '') {
+        generateEmptyScene();
+        process.exit(0);
     }
+
+    const subsFile = path.join(rootDir, subPathRel);
+
+    if (!fs.existsSync(subsFile) || fs.statSync(subsFile).isDirectory()) {
+        log(`⚠️ ВНИМАНИЕ: Файл субтитров не найден или является папкой по пути: ${subsFile}`);
+        generateEmptyScene();
+        process.exit(0);
+    }
+    // ----------------------------------------
 
     const isTest = config.testMode && config.testMode.enabled;
     const totalDuration = isTest ? config.testMode.duration : config.project.totalDuration;
@@ -174,13 +204,12 @@ try {
         display: inline-block;
     }
     
-    /* Кинетическая реакция слов на бас */
+    /* Кинетическая реакция слов на бас (CSS transition удален для совместимости с Hyperframes) */
     .bass-word {
         display: inline-block;
         letter-spacing: calc(var(--bass) * 8px);
         padding: 0 calc(var(--bass) * 4px);
         transform: scale(calc(1 + var(--bass) * 0.05));
-        transition: letter-spacing 0.05s ease-out, padding 0.05s ease-out, transform 0.05s ease-out;
     }
     
     ${globalFontCss}
@@ -193,16 +222,23 @@ ${svgFiltersHTML}
 ${subsHTML}
 </div>
 <script>
+    // Ждем загрузки шрифтов, если они есть
     document.fonts.ready.then(() => {
         window.__timelines = window.__timelines || {};
         window.__timelines["subs_scene"] = document.querySelector('[data-composition-id="subs_scene"]');
     });
+    // Запасной план на случай если шрифты не отдают ready:
+    setTimeout(() => {
+        window.__timelines = window.__timelines || {};
+        if (!window.__timelines["subs_scene"]) {
+           window.__timelines["subs_scene"] = document.querySelector('[data-composition-id="subs_scene"]');
+        }
+    }, 100);
 </script>
 </body>
 </html>`;
 
-    if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
-    fs.writeFileSync(path.join(compDir, 'subs_scene.html'), html, 'utf8');
+    fs.writeFileSync(outputPath, html, 'utf8');
     log("✅ УСПЕХ! HTML файл субтитров перезаписан.");
 } catch (e) {
     log(`❌ ОШИБКА В BUILD_SUBS.JS: ${e.message}`);
