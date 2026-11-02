@@ -17,4 +17,4 @@ renders/
 
 # Игнорируем системные файлы ОС
 .DS_Store
-Thumbs.db
+Thumbs.db*.rar 
