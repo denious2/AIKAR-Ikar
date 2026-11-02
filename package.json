@@ -7,7 +7,13 @@
   "scripts": {
     "start": "node core/run.js",
     "new-clip": "node core/init_clip.js",
-    "scan-media": "node core/utils/media_scanner.js"
+    "scan-media": "node core/utils/media_scanner.js",
+	"beats": "node core/utils/generate_beats.js",
+	"accents": "node core/utils/generate_accents.js",
+	"bass": "node core/utils/generate_bass.js",
+	"melody": "node core/utils/generate_melody.js",
+	"vocal": "node core/utils/generate_vocal.js",
+	"drums": "node core/utils/generate_drums.js"
   },
   "keywords": ["lyric video","musical video editor"],
   "author": "Rubber Gallus",
