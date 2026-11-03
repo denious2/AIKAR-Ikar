@@ -18,7 +18,7 @@
   },
   "media": {
     "audioFile": "media/Икар-15s.mp3",
-    "subtitlesFile": "media/subtitles.srt",
+    "subtitlesFile": "",
     "imagesFolder": "media/Scenes"
   },
   "effects": { 

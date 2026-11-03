@@ -37,11 +37,24 @@ try {
         ? `\n        <!-- 4.6 АКЦЕНТЫ -->\n        <div id="host-accents" data-composition-id="accents_scene" class="composition-layer clip" style="z-index: 9999; pointer-events: none; mix-blend-mode: ${accentsBlendMode};" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}" data-track-index="46" data-composition-src="compositions/accents_scene.html"></div>` 
         : '';
 
-    // Стили оверлеев из библиотеки (ПЕРЕНЕСЕНЫ В CSS, ЧТОБЫ НЕ ПЕРЕБИВАТЬ РЕАКТОРЫ)
+    // Стили оверлеев из библиотеки
     const shadowKey = director.overlays?.shadowCrush || "shadow_crush_default";
     const flashKey = director.overlays?.screenFlash || "screen_flash_white";
     const shadowCss = library.effectsPool?.overlayStyles?.[shadowKey] || "background: #000000; mix-blend-mode: multiply;";
     const flashCss = library.effectsPool?.overlayStyles?.[flashKey] || "background: #ffffff; mix-blend-mode: screen;";
+
+    // --- БЕЗОПАСНАЯ ПРОВЕРКА СУБТИТРОВ ---
+    let subsHtmlLayer = "";
+    const subPathConfig = config.media?.subtitlesFile;
+    const subsCompositionPath = path.join(compDir, 'subs_scene.html');
+    
+    if (subPathConfig && subPathConfig.trim() !== '' && fs.existsSync(path.join(rootDir, subPathConfig)) && fs.existsSync(subsCompositionPath)) {
+        subsHtmlLayer = `\n        <div id="host-subs" data-composition-id="subs_scene" class="composition-layer clip" style="z-index: 10000;" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}" data-track-index="5" data-composition-src="compositions/subs_scene.html"></div>`;
+        console.log("📝 Слой субтитров успешно подключен.");
+    } else {
+        console.log("ℹ️ Субтитры отключены или файл не найден — слой #host-subs пропущен.");
+    }
+    // -------------------------------------
 
     // 3. Глобальные фильтры
     const structure = (director.songStructure || config.songStructure).sort((a, b) => a.time - b.time);
@@ -104,11 +117,10 @@ try {
         <div id="host-dust" data-composition-id="dust_scene" class="composition-layer clip ${shakeClass}" style="mix-blend-mode: multiply; z-index: 90;" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}" data-track-index="4" data-composition-src="compositions/dust_scene.html"></div>
         <div id="host-beats" data-composition-id="beats_scene" class="composition-layer clip" style="mix-blend-mode: ${flashBlendMode}; z-index: 95; pointer-events: none;" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}" data-track-index="45" data-composition-src="compositions/beats_scene.html"></div>
         
-        <!-- ВАЖНО: Убраны инлайн стили! -->
         <div id="shadow-crush-overlay" class="fullscreen-overlay clip" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}"></div>
         <div id="screen-flash-overlay" class="fullscreen-overlay clip" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}"></div>
         
-        <div id="host-subs" data-composition-id="subs_scene" class="composition-layer clip" style="z-index: 10000;" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}" data-track-index="5" data-composition-src="compositions/subs_scene.html"></div>
+        ${subsHtmlLayer}
         <div id="host-color-grade" class="composition-layer clip" style="z-index: 9998; pointer-events: none; ${colorGradeCss}" data-in="${renderOffset}" data-out="${renderEnd}" data-start="0" data-duration="${duration}" data-track-index="6"></div>
 
         ${accentsHtmlLayer}
