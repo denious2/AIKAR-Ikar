@@ -1,13 +1,13 @@
 {
   "_README": "Режиссерский конфиг. Управляет структурой песни, правилами секций, пулами ассетов и стилями.",
   "layers": {
-    "0_audio": "Аудио трек",
-    "1_paper": "Базовый фон",
-    "2_main": "Основные сцены",
-    "4_fly": "Ассеты полета",
-    "6_text": "Субтитры",
-    "7_top": "Пыль и транзишены",
-    "8_logo": "Логотип"
+    "0_audio": "Аудио трек (Скрытый слой)",
+    "1_paper": "Базовый фон (.layer-bg)",
+    "2_main": "Основные сцены (.layer-hero: центр, #host-images)",
+    "4_fly": "Ассеты полета (.layer-fg)",
+    "6_text": "Субтитры (#host-subs)",
+    "7_top": "Пыль, глитчи и транзишены (.texture-wrapper, #host-accents, #shadow-crush-overlay, #screen-flash-overlay)",
+    "8_logo": "Логотип (#host-logo)"
   },
   "songStructure": [
     { "time": 0.0, "name": "Intro (Пробуждение)", "type": "intro" },
@@ -25,13 +25,39 @@
     "outro":     { "allowedLayers": [2, 6, 7], "blackout": false, "globalFilter": "color_burn_middle" },
     "copyright": { "allowedLayers": [5], "blackout": false }    
   },
+  "behaviorClasses": {
+    "narrative": { "strategy": "sequence", "maxDuration": null },
+    "atmosphere": { "strategy": "dynamic_slots", "maxDuration": 6.0 },
+    "flash": { "strategy": "random_flash", "duration": 0.4 }
+  },
+  "overlays": {
+    "shadowCrush": "shadow_crush_default",
+    "screenFlash": "screen_flash_white"
+  },
   "beatsConfig": {
     "enabled": true,
+    "sourceFile": "beats.json",
+    "decay": 0.15,
     "multiplier": 1,
     "type": "solid",
     "dynamics": "sharp",
     "color": "#ffffff",
     "intensity": 0.4
+  },
+  "bass": {
+    "enabled": true,
+    "sourceFile": "bass.json",
+    "decay": 0.3
+  },
+  "melody": {
+    "enabled": true,
+    "sourceFile": "melody.json",
+    "decay": 0.2
+  },
+  "vocal": {
+    "enabled": true,
+    "sourceFile": "vocal.json",
+    "decay": 0.2
   },
   "accents": {
     "enabled": true,
@@ -52,56 +78,89 @@
     }
   },
   "audioReactors": {
-    "_hint": "Управляет новыми нодовыми связями через глобальные CSS-переменные --bass, --melody, --vocal, --beat",
     "enabled": true,
     "nodes": [
       {
-        "name": "Пульсация атмосферы от бита",
-        "description": "Слегка увеличивает масштаб всего слоя шумов/текстур в момент удара бочки.",
-        "target": ".texture-wrapper",
+        "name": "Пульсация пыли (Атмосфера)",
+        "description": "Слегка увеличивает масштаб слоя шумов/текстур.",
+        "target": "#host-dust",
         "cssProperty": "transform",
-        "formula": "scale(calc(1 + var(--beat) * 0.04))",
+        "formulaParts": [
+          { "code": "scale(calc(1 + var(--beat) * 0.05))" }
+        ],
         "transition": "transform 0.05s ease-out"
       },
       {
-        "name": "Затемнение теней под бас",
-        "description": "Уплотняет тени по всему кадру (оверлей), усиливая глубину на низких частотах.",
+        "name": "Светлое мерцание (Вспышка)",
+        "description": "Мягкая белая вспышка виньетки.",
+        "target": "#screen-flash-overlay",
+        "cssProperty": "opacity",
+        "formulaParts": [
+          { "code": "calc(var(--beat) * 0.15)" }
+        ],
+        "transition": "opacity 0.05s ease-out"
+      },
+      {
+        "name": "Плотное затемнение теней",
+        "description": "Базовое затемнение, которое уплотняется при ударе баса.",
         "target": "#shadow-crush-overlay",
         "cssProperty": "opacity",
-        "formula": "calc(var(--bass) * 0.4)",
-        "transition": "opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)"
+        "formulaParts": [
+          { "code": "calc(0.3 + var(--bass) * 0.6)" }
+        ],
+        "transition": "opacity 0.05s ease-out"
       },
       {
-        "name": "Пружинящие субтитры",
-        "description": "Заставляет текст субтитров слегка увеличиваться и покачиваться в такт басу.",
-        "target": "#host-subs",
-        "cssProperty": "transform",
-        "formula": "scale(calc(1 + var(--bass) * 0.04))",
-        "transition": "transform 0.05s ease-out"
+        "name": "Раздвижение букв в титрах",
+        "description": "Растягивает трекинг и растаскивает символы титров по удару барабана.",
+        "target": "#host-subs *",
+        "cssProperty": "letter-spacing",
+        "formulaParts": [
+          { "code": "calc(var(--beat) * 8px)", "note": "Реальное увеличение расстояния между символами" }
+        ],
+        "transition": "letter-spacing 0.03s ease-out"
       },
       {
-        "name": "Дыхание фона (Мелодия)",
-        "description": "Размывает задний план (слои параллакса b1-b3) под мягкие партии пэдов или синтезатора.",
-        "target": ".layer-bg",
+        "name": "Цветовой CSS-Глитч",
+        "description": "Жестко сдвигает цвета на 180 градусов, пробивая глобальный фильтр.",
+        "target": "#host-images",
         "cssProperty": "filter",
-        "formula": "blur(calc(var(--melody) * 6px))",
-        "transition": "filter 0.1s ease-out"
+        "formulaParts": [
+          { "code": "hue-rotate(calc(var(--beat) * 180deg))" },
+          { "code": "saturate(calc(1 + var(--beat) * 5))" }
+        ],
+        "transition": "filter 0.03s steps(2)"
       },
       {
-        "name": "Подсветка героя (Вокал)",
-        "description": "Делает главный объект/картинку чуть ярче и выразительнее, когда в песне звучит вокал.",
-        "target": ".layer-hero",
-        "cssProperty": "filter",
-        "formula": "brightness(calc(1 + var(--vocal) * 0.25))",
-        "transition": "filter 0.05s ease-out"
-      },
-      {
-        "name": "Толчок картинок по битам",
-        "description": "Резко, но плавно подталкивает весь блок нарратива вперед при каждом ударе бочки.",
+        "name": "Кинетический сдвиг (Геометрия)",
+        "description": "Наклоняет и смещает картинку в момент удара.",
         "target": "#host-images",
         "cssProperty": "transform",
-        "formula": "scale(calc(1 + var(--beat) * 0.03))",
-        "transition": "transform 0.05s ease-out"
+        "formulaParts": [
+          { "code": "skewX(calc(var(--beat) * -5deg))" },
+          { "code": "translate(calc(var(--beat) * 8px), calc(var(--beat) * -5px))" },
+          { "code": "scale(calc(1 + var(--beat) * 0.05))" }
+        ],
+        "transition": "transform 0.03s steps(2)"
+      },
+      {
+        "name": "Игра контраста и света на Герое (Огибающая)",
+        "description": "Заменяет скучный задник: контраст и яркость главного героя нарастают к центру трека по огибающей.",
+        "target": "#host-images",
+        "cssProperty": "filter",
+        "formulaParts": [
+          { "code": "contrast(calc(1 + var(--env) * 0.4))", "note": "Рост контраста по огибающей" },
+          { "code": "brightness(calc(1 + var(--env) * 0.2))", "note": "Просветление поверхностей" }
+        ],
+        "envelope": {
+          "mode": "curve",
+          "points": [
+            { "x": 0.0, "y": 0.0 },
+            { "x": 0.5, "y": 1.0 },
+            { "x": 1.0, "y": 0.0 }
+          ]
+        },
+        "transition": "filter 0.1s ease-out"
       }
     ]
   },

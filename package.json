@@ -6,6 +6,8 @@
   "main": "build_all.js",
   "scripts": {
     "start": "node core/run.js",
+	"clean": "node core/utils/clean_demo.js",
+	"restore": "node core/utils/restore_demo.js",
     "new-clip": "node core/init_clip.js",
     "scan-media": "node core/utils/media_scanner.js",
 	"beats": "node core/utils/generate_beats.js",

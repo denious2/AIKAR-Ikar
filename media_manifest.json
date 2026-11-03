@@ -1,0 +1,164 @@
+{
+  "scannedAt": "2026-11-02T21:43:57.099Z",
+  "audioTracks": [
+    {
+      "fileName": "bass-15s.mp3",
+      "path": "media/bass-15s.mp3",
+      "sizeBytes": 3302965,
+      "isMainCandidate": true,
+      "durationSeconds": 82.547
+    },
+    {
+      "fileName": "Икар-15s-melody.mp3",
+      "path": "media/Икар-15s-melody.mp3",
+      "sizeBytes": 3300831
+    },
+    {
+      "fileName": "Икар-15s-vocal.mp3",
+      "path": "media/Икар-15s-vocal.mp3",
+      "sizeBytes": 3300831
+    },
+    {
+      "fileName": "Икар-15s.mp3",
+      "path": "media/Икар-15s.mp3",
+      "sizeBytes": 3300831
+    },
+    {
+      "fileName": "accents-15s.mp3",
+      "path": "media/accents-15s.mp3",
+      "sizeBytes": 3290382
+    }
+  ],
+  "scenes": [
+    {
+      "name": "i-0011",
+      "file": "i-0011.mp4",
+      "path": "media/Scenes/i-0011.mp4",
+      "layers": []
+    },
+    {
+      "name": "i-0015",
+      "file": "i-0015.mp4",
+      "path": "media/Scenes/i-0015.mp4",
+      "layers": []
+    },
+    {
+      "name": "i-02",
+      "file": "i-02.png",
+      "path": "media/Scenes/i-02.png",
+      "layers": []
+    },
+    {
+      "name": "I-03",
+      "file": "I-03.png",
+      "path": "media/Scenes/I-03.png",
+      "layers": []
+    },
+    {
+      "name": "i-04",
+      "file": "i-04.png",
+      "path": "media/Scenes/i-04.png",
+      "layers": []
+    },
+    {
+      "name": "i-05",
+      "file": "i-05.png",
+      "path": "media/Scenes/i-05.png",
+      "layers": []
+    },
+    {
+      "name": "i-06",
+      "file": "i-06.png",
+      "path": "media/Scenes/i-06.png",
+      "layers": []
+    },
+    {
+      "name": "i-07",
+      "file": "i-07.png",
+      "path": "media/Scenes/i-07.png",
+      "layers": []
+    },
+    {
+      "name": "i-08-1",
+      "file": "i-08-1.png",
+      "path": "media/Scenes/i-08-1.png",
+      "layers": []
+    },
+    {
+      "name": "i-08",
+      "file": "i-08.mp4",
+      "path": "media/Scenes/i-08.mp4",
+      "layers": []
+    },
+    {
+      "name": "i-09",
+      "file": "i-09.mp4",
+      "path": "media/Scenes/i-09.mp4",
+      "layers": []
+    },
+    {
+      "name": "i-10-1",
+      "file": "i-10-1.mp4",
+      "path": "media/Scenes/i-10-1.mp4",
+      "layers": []
+    },
+    {
+      "name": "i-11",
+      "file": "i-11.mp4",
+      "path": "media/Scenes/i-11.mp4",
+      "layers": []
+    },
+    {
+      "name": "i-12",
+      "file": "i-12.png",
+      "path": "media/Scenes/i-12.png",
+      "layers": []
+    },
+    {
+      "name": "i-13_2",
+      "file": "i-13_2.png",
+      "path": "media/Scenes/i-13_2.png",
+      "layers": []
+    },
+    {
+      "name": "i-13_4",
+      "file": "i-13_4.mp4",
+      "path": "media/Scenes/i-13_4.mp4",
+      "layers": []
+    },
+    {
+      "name": "i-15",
+      "file": "i-15.png",
+      "path": "media/Scenes/i-15.png",
+      "layers": []
+    },
+    {
+      "name": "i-16",
+      "file": "i-16.png",
+      "path": "media/Scenes/i-16.png",
+      "layers": []
+    }
+  ],
+  "sfx": [
+    {
+      "file": "glitch-vert-12.mp4",
+      "path": "media/sfx/accents/glitch-vert-12.mp4"
+    },
+    {
+      "file": "graphite_dust_loop.mp4",
+      "path": "media/sfx/dust/graphite_dust_loop.mp4"
+    },
+    {
+      "file": "graphite_scribble_flash.mp4",
+      "path": "media/sfx/flash/graphite_scribble_flash.mp4"
+    },
+    {
+      "file": "storm_debris_transition.mp4",
+      "path": "media/sfx/transition/storm_debris_transition.mp4"
+    },
+    {
+      "file": "vert-;ines-11.mp4",
+      "path": "media/sfx/vert-lines/vert-;ines-11.mp4"
+    }
+  ]
+}

@@ -80,6 +80,9 @@ const log = createLogger(rootDir);
         let imagesHTML = "";
         let currentTime = 0;
 
+        // ИЗВЛЕЧЕНИЕ BEHAVIOR CLASSES ИЗ ПРАВИЛЬНОГО МЕСТА
+        const activeBehaviorClasses = director.behaviorClasses || config.behaviorClasses || library.behaviorClasses || {};
+
         // 4. Главный цикл сборки таймлайна
         while (currentTime < config.project.totalDuration) {
             const absStart = currentTime;
@@ -114,8 +117,12 @@ const log = createLogger(rootDir);
             const fileOverride = getOverride(file, config, director);
 
             // Математика ритмического магнита
+            // ПРИМЕНЕНИЕ ЛОГИКИ ИЗ BEHAVIOR CLASSES
+            let classRules = activeBehaviorClasses[activePool.class] || {};
+            let currentMaxDur = classRules.maxDuration !== null ? classRules.maxDuration : MAX_IMG_DURATION;
+            
             let currentImgDuration = calculateMagnetDuration({
-                absStart, currentBlockEnd, MAX_IMG_DURATION, MIN_IMG_DURATION,
+                absStart, currentBlockEnd, MAX_IMG_DURATION: currentMaxDur, MIN_IMG_DURATION,
                 subtitleStarts, beats, fileObj, fileOverride
             });
 
