@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { loadConfigs, createLogger } from '../config_loader.js';
+import { compileSubtitlesStyles } from './subtitles_compiler.js';
 
 const rootDir = process.cwd();
 const log = createLogger(rootDir);
@@ -170,8 +171,18 @@ try {
         log(`🎛️ Скомпилировано нод (Audio Reactors): ${director.audioReactors.nodes.length}`);
     }
 
+    // 3. Компилируем типографику и стили субтитров из библиотеки
+    let subsCss = "";
+    if (library) {
+        log("🎨 Сборка стилей типографики и субтитров...");
+        subsCss = compileSubtitlesStyles(library);
+    }
+
+    // Объединяем с реакторами и записываем в reactors.css
+    const finalCss = subsCss + "\n" + css;
+
     if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
-    fs.writeFileSync(path.join(compDir, 'reactors.css'), css, 'utf8');
+    fs.writeFileSync(path.join(compDir, 'reactors.css'), finalCss, 'utf8');
 
     log(`✅ УСПЕХ! Матрица реакторов собрана: compositions/reactors.css`);
 } catch (e) {

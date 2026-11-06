@@ -1,12 +1,15 @@
 {
-  "scannedAt": "2026-11-02T21:43:57.099Z",
+  "scannedAt": "2026-11-06T19:07:33.143Z",
   "audioTracks": [
+    {
+      "fileName": "accents-15s.mp3",
+      "path": "media/accents-15s.mp3",
+      "sizeBytes": 3290382
+    },
     {
       "fileName": "bass-15s.mp3",
       "path": "media/bass-15s.mp3",
-      "sizeBytes": 3302965,
-      "isMainCandidate": true,
-      "durationSeconds": 82.547
+      "sizeBytes": 3302965
     },
     {
       "fileName": "Икар-15s-melody.mp3",
@@ -21,12 +24,9 @@
     {
       "fileName": "Икар-15s.mp3",
       "path": "media/Икар-15s.mp3",
-      "sizeBytes": 3300831
-    },
-    {
-      "fileName": "accents-15s.mp3",
-      "path": "media/accents-15s.mp3",
-      "sizeBytes": 3290382
+      "sizeBytes": 3300831,
+      "isMainCandidate": true,
+      "durationSeconds": 82.521
     }
   ],
   "scenes": [
@@ -159,6 +159,10 @@
     {
       "file": "vert-;ines-11.mp4",
       "path": "media/sfx/vert-lines/vert-;ines-11.mp4"
+    },
+    {
+      "file": "vert-lines-11.mp4",
+      "path": "media/sfx/vert-lines/vert-lines-11.mp4"
     }
   ]
 }

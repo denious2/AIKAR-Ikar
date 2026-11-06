@@ -34,6 +34,32 @@
     "shadowCrush": "shadow_crush_default",
     "screenFlash": "screen_flash_white"
   },
+  "subtitlesConfig": {
+    "enabled": true,
+    "defaultStyle": "base_box",
+    "overrideBySectionType": {
+      "chorus": {
+        "style": "chorus_impact",
+        "animation": {
+          "entrance": "glitch_snap",
+          "durationIn": 0.15,
+          "exit": "soft_fade",
+          "durationOut": 0.2,
+          "motion": "rapid_pulse"
+        }
+      },
+      "hook": {
+        "style": "hook_glitch",
+        "animation": {
+          "entrance": "hard_cut",
+          "durationIn": 0.05,
+          "exit": "hard_cut",
+          "durationOut": 0.05,
+          "motion": "aggressive_shake"
+        }
+      }
+    }
+  },
   "beatsConfig": {
     "enabled": true,
     "sourceFile": "beats.json",

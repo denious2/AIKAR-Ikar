@@ -1,3 +1,9 @@
+/**
+ * Файл: core/utils/generate_drums.js
+ * Версия: 2.1.0 (Smart Path Resolution)
+ * Описание: Экстрактор огибающей ударных (Drums). Фильтрует звук (highpass 30Hz) для выделения атаки.
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -34,25 +40,35 @@ const log = createLogger(rootDir);
         ));
         
         if (audioFileName) {
-            searchStrategy = "Найден специализированный ударный стем";
-        } else if (config.media?.audioFile) {
-            // 2. Фолбэк на главный трек из конфига
-            const cfgRelative = config.media.audioFile;
-            const cfgName = path.basename(cfgRelative);
-            const fullCfgPath = path.join(rootDir, cfgRelative);
-            
-            if (fs.existsSync(fullCfgPath)) {
+            searchStrategy = "Найден специализированный ударный стем (drum/beat/kick)";
+        } else if (config.project?.audioFile) {
+            // 2. Фолбэк на главный трек из конфига (используем config.project вместо config.media для единообразия)
+            const cfgName = path.basename(config.project.audioFile);
+            if (files.includes(cfgName)) {
                 audioFileName = cfgName;
                 searchStrategy = `Взят главный трек из config.json (${cfgName})`;
             }
         }
 
+        // 3. Фолбэк на любой общий трек
+        if (!audioFileName) {
+            audioFileName = files.find(f => 
+                (f.endsWith('.mp3') || f.endsWith('.wav')) && 
+                (f.toLowerCase().includes('track') || f.toLowerCase().includes('main') || f.toLowerCase().includes('song') || f.toLowerCase().includes('master'))
+            );
+            if (audioFileName) searchStrategy = "Главный трек (по словам track/main/song/master)";
+        }
+
+        // 4. Абсолютный фолбэк
         if (!audioFileName) {
             audioFileName = files.find(f => f.endsWith('.mp3') || f.endsWith('.wav'));
-            if (audioFileName) searchStrategy = "Абсолютный фолбэк на первый файл в папке";
+            if (audioFileName) searchStrategy = "Абсолютный фолбэк на первый попавшийся файл";
         }
         
-        if (!audioFileName) throw new Error("Аудиофайл не найден!");
+        if (!audioFileName) {
+            log(`⚠️ ВНИМАНИЕ: Аудиофайл для ударных не найден. Модуль пропущен.`);
+            process.exit(0);
+        }
 
         log(`🥁 ИСТОЧНИК ДЛЯ DRUMS: выбран файл [${audioFileName}]`);
         log(`🔍 Стратегия выбора: ${searchStrategy}`);
@@ -96,6 +112,10 @@ const log = createLogger(rootDir);
             }
         });
 
+        ffmpegProcess.stderr.on('data', (data) => {
+            // Игнорируем спам ffmpeg
+        });
+
         ffmpegProcess.on('close', (code) => {
             if (code !== 0) {
                 log(`❌ Ошибка FFmpeg (код ${code})`);
@@ -131,12 +151,13 @@ const log = createLogger(rootDir);
                 sourceFile: audioFileName,
                 fps: FPS,
                 frames: normalizedEnvelope
-            }, 'utf8'), 'utf8');
+            }, null, 2), 'utf8');
 
-            log(`✅ УСПЕХ! Огибающая ударных сохранена в: drums.json (найдено кадров: ${normalizedEnvelope.length})`);
+            log(`✅ УСПЕХ! Огибающая ударных сохранена в: drums.json (кадров: ${normalizedEnvelope.length})`);
         });
 
     } catch (e) { 
-        log(`❌ Ошибка: ${e.message}`); 
+        log(`❌ Системная ошибка: ${e.message}`); 
+        process.exit(1);
     }
 })();

@@ -2,27 +2,35 @@
   "_AI_DIRECTOR_MANUAL": "Проект Икар. Вертикальный формат. Монохромный ретро комикс на белом фоне (multiply).",
   "project": {
     "name": "Ikar",
-    "totalDuration": 78.0,
-    "resolution": { "width": 1080, "height": 1920 }
+    "totalDuration": 82.521,
+    "resolution": {
+      "width": 1080,
+      "height": 1920
+    },
+    "audioFile": "media/Икар-15s.mp3"
   },
-  "testMode": { 
-    "enabled": false, 
-    "start": 68, 
-    "duration": 10 
+  "testMode": {
+    "enabled": false,
+    "start": 68,
+    "duration": 10
   },
-  "render": { 
-    "_options_quality": ["draft", "standard", "high"],
+  "render": {
+    "_options_quality": [
+      "draft",
+      "standard",
+      "high"
+    ],
     "quality": "draft",
     "hideDebugLogs": true,
     "fps": 30
   },
   "media": {
     "audioFile": "media/Икар-15s.mp3",
-    "subtitlesFile": "",
+    "subtitlesFile": "media/subtitles.srt",
     "imagesFolder": "media/Scenes"
   },
-  "effects": { 
-    "imageDuration": 4.3, 
+  "effects": {
+    "imageDuration": 4.3,
     "safeMargin": 0.3,
     "lightingStyle": "dynamic_lamp",
     "colorGrade": "midnight_blue",
@@ -34,6 +42,35 @@
       "color": "#000000",
       "intensity": 0.3,
       "blendMode": "multiply"
+    }
+  },
+  "audioAnalysis": {
+    "accents": {
+      "threshold": 0.8,
+      "cooldownMs": 250,
+      "targetMin": 15,
+      "targetMax": 50
+    },
+    "beats": {
+      "minBpm": 60,
+      "maxBpm": 180,
+      "targetMinBeats": 30
+    },
+    "bass": {
+      "lowpassHz": 120
+    },
+    "drums": {
+      "highpassHz": 30,
+      "smoothWindow": 2
+    },
+    "melody": {
+      "highpassHz": 500,
+      "lowpassHz": 6000,
+      "smoothWindow": 5
+    },
+    "vocal": {
+      "highpassHz": 300,
+      "lowpassHz": 3000
     }
   }
 }

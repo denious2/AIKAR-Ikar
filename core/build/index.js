@@ -1,3 +1,9 @@
+/**
+ * Файл: core/build/index.js
+ * Версия: 2.1.2 (Modular Subs & Link CSS)
+ * Описание: Главный оркестратор HTML-каркаса. Собирает композицию из слоев и подключает reactors.css.
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { loadConfigs } from '../config_loader.js';
@@ -19,8 +25,7 @@ try {
     const compDir = path.join(rootDir, 'compositions');
 
     // 1. Читаем готовый CSS от компилятора нод (reactors.js должен быть запущен ДО index.js)
-    const reactorsCssPath = path.join(compDir, 'reactors.css');
-    const reactorsCss = fs.existsSync(reactorsCssPath) ? fs.readFileSync(reactorsCssPath, 'utf8') : '';
+    // reactorsCss убрали из инлайн стилей, он теперь подключается через <link>
 
     // 2. Цветокоррекция, акценты и стили оверлеев
     const colorGradeKey = config.effects?.colorGrade || "none";
@@ -88,6 +93,7 @@ try {
 <head>
     <meta charset="utf-8">
     <title>${config.project.name}</title>
+    <link rel="stylesheet" href="compositions/reactors.css">
     <style>
         body { margin: 0; background: #000; overflow: hidden; }
         #root { position: absolute; width: ${resW}px; height: ${resH}px; overflow: hidden; }
@@ -105,7 +111,6 @@ try {
 
         /* ПОДКЛЮЧЕНИЕ СГЕНЕРИРОВАННЫХ СТИЛЕЙ */
         ${cameraShakeCss}
-        ${reactorsCss}
     </style>
 </head>
 <body>

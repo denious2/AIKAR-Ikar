@@ -1,3 +1,9 @@
+/**
+ * Файл: core/utils/generate_bass.js
+ * Версия: 2.0.1 (Smart Path Resolution)
+ * Описание: Прогоняет аудио через FFmpeg low-pass фильтр (120Hz) для создания огибающей баса.
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
@@ -11,17 +17,14 @@ const log = createLogger(rootDir);
     log("=== СТАРТ АНАЛИЗА АУДИО (ЭКСТРАКТОР БАСА) ===");
 
     try {
-        // Используем нашу утилиту для загрузки конфига
         const { config } = loadConfigs(rootDir);
         
-        // Ищем файлы в папке media 
         const audioDir = path.join(rootDir, 'media');
         if (!fs.existsSync(audioDir)) {
             throw new Error("Папка media не найдена!");
         }
         const files = fs.readdirSync(audioDir);
         
-        // >>> УМНЫЙ ПРИЦЕЛЬНЫЙ ПОИСК ФАЙЛА БАСА <<<
         let audioFileName = null;
         let searchStrategy = "";
 
@@ -52,7 +55,7 @@ const log = createLogger(rootDir);
             if (audioFileName) searchStrategy = "Главный трек (по ключевым словам track/main/master)";
         }
 
-        // 4. Если и этого нет, берем любой аудиофайл, исключая явные побочные стемы (accents, sfx, pads)
+        // 4. Если и этого нет, берем любой аудиофайл, исключая явные побочные стемы
         if (!audioFileName) {
             audioFileName = files.find(f => 
                 (f.endsWith('.mp3') || f.endsWith('.wav')) && 
@@ -89,11 +92,11 @@ const log = createLogger(rootDir);
 
         const ffmpegProcess = spawn(ffmpegStatic, [
             '-i', audioPath,
-            '-af', 'lowpass=f=120', // Пропускаем только бас
-            '-f', 's16le',          // Формат Raw PCM 16-bit Little Endian
-            '-ac', '1',             // Моно
+            '-af', 'lowpass=f=120', 
+            '-f', 's16le',          
+            '-ac', '1',             
             '-ar', SAMPLE_RATE.toString(),
-            'pipe:1'                // Вывод в stdout
+            'pipe:1'                
         ]);
 
         let buffer = Buffer.alloc(0);

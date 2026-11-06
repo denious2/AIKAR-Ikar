@@ -1,9 +1,14 @@
+/**
+ * Файл: run.js
+ * Версия: 2.3.1 (Smart Builder Detection)
+ * Описание: Главный оркестратор пайплайна. Запускает все доступные сборщики и финальный рендер Hyperframes.
+ */
+
 import { execSync, spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
 const rootDir = process.cwd();
-// >>> ИСПРАВЛЕНО: Путь к конфигу теперь ведет в папку configs/ <<<
 const configPath = path.join(rootDir, 'configs', 'config.json');
 
 if (!fs.existsSync(configPath)) {
@@ -30,7 +35,7 @@ const hideDebugLogs = config.render?.hideDebugLogs !== false;
 const renderQuality = config.render?.quality; 
 const renderFps = config.render?.fps;        
 
-// >>> Обновлены пути к скриптам для модульной архитектуры <<<
+// Умный массив билдеров. Порядок важен. Отсутствующие скрипты будут проигнорированы.
 const scripts = [
     path.join('core', 'build', 'audio.js'),
     path.join('core', 'build', 'beats.js'),      
@@ -64,7 +69,7 @@ async function runPipeline() {
             }
         });
 
-        console.log(`[${getTime()}] 🎬 ВСЕ СЦЕНЫ СОБРАНЫ. ЗАПУСКАЮ РЕНДЕР...`);
+        console.log(`[${getTime()}] 🎬 ВСЕ СЦЕНЫ СОБРАНЫ. ЗАПУСКАЮ РЕНДЕР В КОРЕНЬ ПРОЕКТА...`);
         
         // Формируем динамический массив аргументов для hyperframes
         const renderArgs = ['hyperframes', 'render', '.'];
@@ -85,7 +90,7 @@ async function runPipeline() {
         
         renderArgs.push('-o', outputFileName);
 
-        console.log(`⏳ Идет рендер файла: "${outputFileName}". Технический мусор скрыт, ожидайте прогресс...\n`);
+        console.log(`⏳ Идет рендер файла: "${outputFileName}". Ожидайте прогресс...\n`);
         
         // Запускаем рендер асинхронно через spawn с перехватом потока
         await new Promise((resolve, reject) => {
@@ -119,7 +124,7 @@ async function runPipeline() {
             });
         });
 
-        console.log(`\n[${getTime()}] ✅ УСПЕХ! Рендер завершен. Видео сохранено как: ${outputFileName}`);
+        console.log(`\n[${getTime()}] ✅ УСПЕХ! Рендер завершен. Ищите готовое видео в папке проекта: ${outputFileName}`);
     } catch (error) {
         console.error(`\n[${getTime()}] ❌ ПРОЦЕСС ПРЕРВАН ИЗ-ЗА ОШИБКИ:`);
         console.error(error.message);

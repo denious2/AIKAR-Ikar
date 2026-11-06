@@ -2,15 +2,76 @@
   "_README": "Библиотека эффектов. CSS-анимации, фильтры, стили и пресеты, на которые ссылается director-config.json.",
   "effectsPool": {
     "fonts": {
-      "jura": "@font-face { font-family: 'Jura'; src: url('https://fonts.gstatic.com/s/jura/v31/z73dXa3aW78m7xTf_G2pI-4.woff2') format('woff2'); font-weight: normal; font-style: normal; }"
+    "Jura": "@font-face { font-family: 'Jura'; src: url('https://fonts.gstatic.com/s/jura/v31/z73dXa3aW78m7xTf_G2pI-4.woff2') format('woff2'); font-weight: normal; font-style: normal; }",
+    "Montserrat": "@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');",
+    "Inter": "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');",
+    "Open Sans": "@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700;800&display=swap');",
+    "Roboto": "@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap');",
+    "Bebas Neue": "@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');",
+    "Russo One": "@import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');",
+    "Anton": "@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');",
+    "Oswald": "@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap');",
+    "Staatliches": "@import url('https://fonts.googleapis.com/css2?family=Staatliches&display=swap');",
+    "Black Ops One": "@import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap');",
+    "Cinzel": "@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap');",
+    "Comfortaa": "@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&display=swap');",
+    "Prata": "@import url('https://fonts.googleapis.com/css2?family=Prata&display=swap');",
+    "Rubik Mono One": "@import url('https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap');",
+    "Alfa Slab One": "@import url('https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap');"
+  },
+  "textStyles": {
+    "base_box": {
+      "font": "Jura",
+      "fontSize": "68px",
+      "fontWeight": "normal",
+      "color": "#b0b0b0",
+      "opacity": 1.0,
+      "letterSpacing": "2px",
+      "box": {
+        "enabled": true,
+        "backgroundColor": "#111111",
+        "padding": "0 0.5em 0.2em 0.5em",
+        "borderRadius": "0px"
+      },
+      "stroke": {
+        "width": "0px",
+        "color": "transparent"
+      }
     },
-    "textStyles": {
-      "retro_box": "font-family: 'Jura', sans-serif !important; font-size: 68px!important; color: #b0b0b0; background-color: #111111; padding: 0 0.5em 0.2em 0.5em; margin: 0.5em 0; line-height: 1.5; -webkit-box-decoration-break: clone; box-decoration-break: clone;",
-      "chorus_impact": "font-family: 'Jura', sans-serif !important; font-size: 68px!important; font-weight: bold!important; color: #111111; background-color: #e0e0e0; padding: 0 0.4em 0.1em 0.4em; margin: 0.5em 0; line-height: 1.4; -webkit-box-decoration-break: clone; box-decoration-break: clone; text-transform: uppercase;",
-      "hook_glitch": "font-family: 'Jura', sans-serif !important; font-size: 68px!important; font-weight: bold!important; color: #f4f4f4; background-color: transparent; text-shadow: -3px 3px 0px #ff0055, 3px -3px 0px #00ffcc; margin: 0.5em 0; line-height: 1.5; text-transform: uppercase;",
-      "outro_ghost": "font-family: 'Jura', sans-serif !important; font-size: 68px!important; color: #ffffff; background-color: transparent; opacity: 0.7; letter-spacing: 4px; margin: 0.5em 0; line-height: 1.5;",
-      "lighting_box": "font-family: 'Jura', sans-serif !important; font-size: 66px!important; color: #c0b6d1; background-color: #070707; padding: 0 0.5em 0.2em 0.5em; margin: 0.5em 0; line-height: 1.5; -webkit-box-decoration-break: clone; box-decoration-break: clone; border-radius: 8px; animation: electric_glow_jitter 0.15s steps(2, end) infinite alternate;"
+    "chorus_impact": {
+      "font": "Russo One",
+      "fontSize": "74px",
+      "fontWeight": "bold",
+      "color": "#ffffff",
+      "opacity": 1.0,
+      "letterSpacing": "3px",
+      "box": {
+        "enabled": true,
+        "backgroundColor": "#ff0055",
+        "padding": "0.1em 0.5em",
+        "borderRadius": "6px"
+      },
+      "stroke": {
+        "width": "2px",
+        "color": "#000000"
+      }
     },
+    "hook_glitch": {
+      "font": "Anton",
+      "fontSize": "80px",
+      "fontWeight": "bold",
+      "color": "#00ffcc",
+      "opacity": 1.0,
+      "letterSpacing": "4px",
+      "box": {
+        "enabled": false
+      },
+      "stroke": {
+        "width": "3px",
+        "color": "#ffffff"
+      }
+    }
+  },
     "globalFilters": {
       "none": "display: none;",
       "invert": "backdrop-filter: invert(100%);",

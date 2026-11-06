@@ -1,3 +1,9 @@
+/**
+ * Файл: core/utils/media_scanner.js
+ * Версия: 2.3.0 (Smart Stem Exclusion & Clear Logging)
+ * Описание: Сканирует media, исключает стемы из роли главного трека и обновляет config.json.
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
@@ -7,7 +13,6 @@ import ffprobe from 'ffprobe-static';
 const rootDir = process.cwd();
 const log = createLogger(rootDir);
 
-// Вспомогательная функция для рекурсивного поиска файлов в подпапках
 function getAllFilesRecursive(dirPath, arrayOfFiles) {
     const files = fs.readdirSync(dirPath);
     let allFiles = arrayOfFiles || [];
@@ -24,7 +29,6 @@ function getAllFilesRecursive(dirPath, arrayOfFiles) {
     return allFiles;
 }
 
-// Синхронная функция получения длительности через ffprobe
 function getDurationSync(filePath) {
     try {
         const command = `"${ffprobe.path}" -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`;
@@ -36,7 +40,6 @@ function getDurationSync(filePath) {
     }
 }
 
-// Убрали async, теперь весь скрипт строго синхронный
 (() => {
     log("=== СТАРТ СКАНИРОВАНИЯ МЕДИА-ПАСКОВ ===");
 
@@ -53,53 +56,92 @@ function getDurationSync(filePath) {
             sfx: []
         };
 
-        // 1. Сканируем корень media/ на предмет аудиофайлов (.mp3, .wav)
         const rootFiles = fs.readdirSync(mediaDir);
-        let audioCandidates = [];
+        let audioFiles = [];
+        let subtitlesFile = "";
         
         rootFiles.forEach(f => {
             const ext = path.extname(f).toLowerCase();
             if (ext === '.mp3' || ext === '.wav') {
-                audioCandidates.push({
+                audioFiles.push({
                     fileName: f,
                     path: `media/${f}`,
                     sizeBytes: fs.statSync(path.join(mediaDir, f)).size
                 });
             }
+            if (ext === '.srt') {
+                subtitlesFile = `media/${f}`;
+            }
         });
 
-        // Если нашли аудио, определяем главный микс (самый тяжелый файл)
-        if (audioCandidates.length > 0) {
-            // Сортируем по размеру (по убыванию)
-            audioCandidates.sort((a, b) => b.sizeBytes - a.sizeBytes);
+        const configPath = path.join(rootDir, 'configs', 'config.json');
+        let currentConfig = { project: {}, media: {} };
+        if (fs.existsSync(configPath)) {
+            currentConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        }
+
+        if (audioFiles.length > 0) {
+            // Список ключевых слов стемов и вспомогательных файлов, которые НЕ ДОЛЖНЫ становиться главным треком
+            const stemKeywords = ['bass', 'drum', 'drums', 'melody', 'vocal', 'acapella', 'accents', 'beat', 'beats', 'sfx', 'pad', 'pads', 'inst'];
+
+            // 1. Ищем файлы, в названии которых нет ключевых слов стемов (чистые кандидаты на главный трек)
+            let pureCandidates = audioFiles.filter(a => {
+                const lowerName = a.fileName.toLowerCase();
+                return !stemKeywords.some(keyword => lowerName.includes(keyword));
+            });
+
+            let chosenAudio = null;
+            let selectionStrategy = "";
+
+            if (pureCandidates.length > 0) {
+                // Если есть чистые файлы, берем самый крупный из них
+                pureCandidates.sort((a, b) => b.sizeBytes - a.sizeBytes);
+                chosenAudio = pureCandidates[0];
+                selectionStrategy = "Главный трек (выбран среди чистых аудиофайлов без стоп-слов)";
+            } else {
+                // Если чистых файлов нет вообще, берем первый попавшийся из всех
+                audioFiles.sort((a, b) => b.sizeBytes - a.sizeBytes);
+                chosenAudio = audioFiles[0];
+                selectionStrategy = "Фолбэк (чистых треков не найдено, выбран самый тяжелый файл)";
+            }
+
+            chosenAudio.isMainCandidate = true;
+
+            log(`🎵 СТРАТЕГИЯ ВЫБОРА АУДИО: ${selectionStrategy}`);
+            log(`⏳ Вычисляем длительность выбранного трека [${chosenAudio.fileName}]...`);
             
-            // Самый большой файл помечаем как кандидата на главный трек
-            const mainAudio = audioCandidates[0];
-            mainAudio.isMainCandidate = true;
-            
-            log(`⏳ Вычисляем длительность главного микса: ${mainAudio.fileName}...`);
-            const fullAudioPath = path.join(rootDir, mainAudio.path);
-            
-            // ЖЕЛЕЗОБЕТОННЫЙ СИНХРОННЫЙ ВЫЗОВ
+            const fullAudioPath = path.join(rootDir, chosenAudio.path);
             const duration = getDurationSync(fullAudioPath);
             
             if (duration !== null) {
-                // Округляем до 3 знаков после запятой
-                mainAudio.durationSeconds = parseFloat(duration.toFixed(3));
-                log(`⏱️ Точная длительность: ${mainAudio.durationSeconds}s`);
+                chosenAudio.durationSeconds = parseFloat(duration.toFixed(3));
+                log(`✅ УСПЕХ! Главный трек: "${chosenAudio.fileName}" | Длительность: ${chosenAudio.durationSeconds}s`);
+                
+                if (!currentConfig.media) currentConfig.media = {};
+                if (!currentConfig.project) currentConfig.project = {};
+                
+                currentConfig.media.audioFile = chosenAudio.path;
+                currentConfig.project.audioFile = chosenAudio.path; 
+                currentConfig.project.totalDuration = chosenAudio.durationSeconds;
+                
+                if (subtitlesFile) {
+                    currentConfig.media.subtitlesFile = subtitlesFile;
+                    log(`💬 Найдены субтитры: ${subtitlesFile}`);
+                }
+                
+                fs.writeFileSync(configPath, JSON.stringify(currentConfig, null, 2), 'utf8');
+                log(`📝 Файл configs/config.json успешно обновлен.`);
             } else {
-                mainAudio.durationSeconds = null;
+                chosenAudio.durationSeconds = null;
+                log(`⚠️ Не удалось прочитать длительность трека.`);
             }
         }
         
-        manifest.audioTracks = audioCandidates;
+        manifest.audioTracks = audioFiles;
 
-        // 2. Сканируем Scenes/ (главный нарратив и параллакс)
         const scenesDir = path.join(mediaDir, 'Scenes');
         if (fs.existsSync(scenesDir)) {
             const sceneFiles = fs.readdirSync(scenesDir);
-            
-            // Группируем основные файлы и их параллакс
             const baseAssets = sceneFiles.filter(f => !f.includes('-prlx-') && (f.endsWith('.png') || f.endsWith('.jpg') || f.endsWith('.mp4')));
 
             baseAssets.forEach(asset => {
@@ -111,51 +153,36 @@ function getDurationSync(filePath) {
                     layers: []
                 };
 
-                // Ищем соответствующие слои параллакса для этого ассета
                 const prlxLayers = sceneFiles.filter(f => f.startsWith(`${baseName}-prlx-`));
                 prlxLayers.forEach(layerFile => {
                     assetEntry.layers.push({
                         file: layerFile,
-                        // Исправлен путь, параллакс обычно лежит в папке prlx/
                         path: fs.existsSync(path.join(scenesDir, 'prlx', layerFile)) 
                               ? `media/Scenes/prlx/${layerFile}` 
                               : `media/Scenes/${layerFile}`
                     });
                 });
-
                 manifest.scenes.push(assetEntry);
             });
         }
         
-        // 3. Сканируем SFX/ (Акценты, глитчи - рекурсивно во вложенных папках)
         const sfxDir = path.join(mediaDir, 'sfx');
         if (fs.existsSync(sfxDir)) {
             const allSfxFiles = getAllFilesRecursive(sfxDir);
-            
             allSfxFiles.forEach(fullPath => {
                 const ext = path.extname(fullPath).toLowerCase();
-                // Ловим видео-глитчи (.mp4, .mov) и аудио-эффекты (.wav, .mp3)
                 if (['.mp4', '.mov', '.wav', '.mp3'].includes(ext)) {
-                    // Формируем относительный путь: media/sfx/accents/glitch.mp4
                     const relPath = path.relative(rootDir, fullPath).replace(/\\/g, '/');
                     const fileName = path.basename(fullPath);
-                    
-                    manifest.sfx.push({
-                        file: fileName,
-                        path: relPath
-                    });
+                    manifest.sfx.push({ file: fileName, path: relPath });
                 }
             });
         }
 
-        // Сохраняем результат в корневой манифест для ИИ-агента
         const manifestPath = path.join(rootDir, 'media_manifest.json');
         fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
 
-        log(`✅ УСПЕХ! Манифест медиа создан: media_manifest.json`);
-        log(`🎵 Найдено аудио: ${manifest.audioTracks.length}`);
-        log(`🖼️ Найдено сцен/фокусов: ${manifest.scenes.length}`);
-        log(`⚡ Найдено эффектов SFX: ${manifest.sfx.length}`);
+        log(`✅ Сканирование завершено. Манифест записан в media_manifest.json`);
 
     } catch (e) {
         log(`❌ Ошибка сканирования медиа: ${e.message}`);

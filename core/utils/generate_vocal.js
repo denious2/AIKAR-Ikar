@@ -1,3 +1,9 @@
+/**
+ * Файл: core/utils/generate_vocal.js
+ * Версия: 2.1.0 (Smart Path Resolution)
+ * // Описание: Экстрактор вокала. Пропускает частоты человеческого голоса (300Hz - 3000Hz) с мягкой нормализацией.
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
@@ -33,12 +39,25 @@ const log = createLogger(rootDir);
             }
         }
 
+        // 3. Фолбэк на общий трек
+        if (!audioFileName) {
+            audioFileName = files.find(f => 
+                (f.endsWith('.mp3') || f.endsWith('.wav')) && 
+                (f.toLowerCase().includes('track') || f.toLowerCase().includes('main') || f.toLowerCase().includes('song') || f.toLowerCase().includes('master'))
+            );
+            if (audioFileName) searchStrategy = "Главный трек (по словам track/main/song/master)";
+        }
+
+        // 4. Абсолютный фолбэк
         if (!audioFileName) {
             audioFileName = files.find(f => f.endsWith('.mp3') || f.endsWith('.wav'));
-            if (audioFileName) searchStrategy = "Абсолютный фолбэк (первый попавшийся аудиофайл)";
+            if (audioFileName) searchStrategy = "Абсолютный фолбэк на первый попавшийся файл";
         }
         
-        if (!audioFileName) throw new Error("Аудиофайл не найден!");
+        if (!audioFileName) {
+            log(`⚠️ ВНИМАНИЕ: Аудиофайл для вокала не найден. Модуль пропущен.`);
+            process.exit(0);
+        }
 
         log(`🎤 ИСТОЧНИК ВОКАЛА: выбран файл [${audioFileName}]`);
         log(`🔍 Стратегия выбора: ${searchStrategy}`);
@@ -106,5 +125,5 @@ const log = createLogger(rootDir);
             log(`✅ УСПЕХ! Огибающая вокала сохранена в: vocal.json`);
         });
 
-    } catch (e) { log(`❌ Ошибка: ${e.message}`); }
+    } catch (e) { log(`❌ Системная ошибка: ${e.message}`); process.exit(1); }
 })();

@@ -6,9 +6,8 @@ const rootDir = process.cwd();
 const log = createLogger(rootDir);
 
 try {
-    log("=== СТАРТ СБОРКИ СУБТИТРОВ (КИНЕТИЧЕСКИЙ БАС И СКЛЕЙКА ПРЕДЛОГОВ) ===");
-    
-    // Используем нашу утилиту для загрузки конфигов
+    log("=== СТАРТ СБОРКИ СУБТИТРОВ (КИНЕТИЧЕСКИЙ БАС И DATA-DRIVEN СТИЛИ) ===");
+
     const { config, director, library } = loadConfigs(rootDir);
     const compDir = path.join(rootDir, 'compositions');
     if (!fs.existsSync(compDir)) fs.mkdirSync(compDir, { recursive: true });
@@ -33,8 +32,9 @@ try {
     };
 
     const subPathRel = config.media?.subtitlesFile;
+    const subsConfig = director.subtitlesConfig || {};
 
-    if (!subPathRel || subPathRel.trim() === '') {
+    if (!subsConfig.enabled || !subPathRel || subPathRel.trim() === '') {
         generateEmptyScene();
         process.exit(0);
     }
@@ -42,7 +42,7 @@ try {
     const subsFile = path.join(rootDir, subPathRel);
 
     if (!fs.existsSync(subsFile) || fs.statSync(subsFile).isDirectory()) {
-        log(`⚠️ ВНИМАНИЕ: Файл субтитров не найден или является папкой по пути: ${subsFile}`);
+        log(`⚠️ ВНИМАНИЕ: Файл субтитров не найден по пути: ${subsFile}`);
         generateEmptyScene();
         process.exit(0);
     }
@@ -55,21 +55,10 @@ try {
 
     let cssLibrary = "";
     let svgFiltersHTML = "";
-    let defaultTextStyle = "retro_box"; 
-    
-    // Полный парсинг библиотеки эффектов
-    if (library.effectsPool) {
-        if (library.effectsPool.fonts) {
-            Object.values(library.effectsPool.fonts).forEach(font => cssLibrary += `${font}\n`);
-        }
-        if (library.effectsPool.textStyles) {
-            const styleKeys = Object.keys(library.effectsPool.textStyles);
-            if (styleKeys.length > 0) defaultTextStyle = styleKeys[0];
 
-            Object.entries(library.effectsPool.textStyles).forEach(([name, style]) => {
-                cssLibrary += `.subtitle-style-${name} { ${style} }\n`;
-            });
-        }
+    // Оставляем парсинг только для движений, появлений и фильтров
+    // Шрифты и textStyles теперь лежат в скомпилированном reactors.css
+    if (library.effectsPool) {
         if (library.effectsPool.movements) {
             Object.entries(library.effectsPool.movements).forEach(([name, keyframes]) => {
                 cssLibrary += `@keyframes ${name} { ${keyframes} }\n`;
@@ -85,18 +74,10 @@ try {
         }
     }
 
-    let globalFontCss = "";
-    if (config.effects?.subtitles?.useCustomFont && config.effects?.subtitles?.fontFamily) {
-        globalFontCss = `
-        .subtitle-wrapper * { 
-            font-family: ${config.effects.subtitles.fontFamily} !important; 
-        }`;
-    }
-
     const structure = (director.songStructure || config.songStructure).sort((a, b) => a.time - b.time);
-    const rulesMap = director.sectionTypeRules || config.sectionTypeRules || {};
 
-    function getStyleForTime(time) {
+    // Новая функция получения стиля из director.subtitlesConfig
+    function getStyleDataForTime(time) {
         let currentSection = structure[0];
         for (let i = 0; i < structure.length; i++) {
             if (time >= structure[i].time) {
@@ -105,37 +86,42 @@ try {
                 break;
             }
         }
-        const rule = rulesMap[currentSection?.type];
-        const override = config.effects && config.effects.subtitleStyle;
-        const styleKey = (rule && rule.textStyle) ? rule.textStyle : (override || defaultTextStyle);
-        return `subtitle-style-${styleKey}`;
+        
+        const defaultStyle = subsConfig.defaultStyle || "base_box";
+        const overrides = subsConfig.overrideBySectionType || {};
+        const sectionOverride = overrides[currentSection?.type];
+
+        return {
+            styleClass: `sub-style-${sectionOverride?.style || defaultStyle}`,
+            animIn: sectionOverride?.animation?.entrance || "fly_up_fade",
+            animOut: sectionOverride?.animation?.exit || "none",
+            motion: sectionOverride?.animation?.motion || "micro_jitter",
+            durIn: sectionOverride?.animation?.durationIn || 0.2,
+            durOut: sectionOverride?.animation?.durationOut || 0.2
+        };
     }
 
     let subsHTML = "";
     const srt = fs.readFileSync(subsFile, 'utf8');
-    
+
     function timeToSec(timeStr) {
         const parts = timeStr.trim().replace(',', '.').split(':');
         return (parseFloat(parts[0]) * 3600) + (parseFloat(parts[1]) * 60) + parseFloat(parts[2]);
     }
 
-    // Разбивка фразы на слова с защитой коротких предлогов
     function processTextForBass(rawText) {
         let text = rawText.replace(/<br\s*\/?>/gi, ' _BR_ ');
-        
-        // Приклеиваем слова из 1-3 букв к следующему слову неразрывным пробелом (&nbsp;)
         text = text.replace(/(^|\s)([а-яА-ЯёЁa-zA-Z]{1,3})\s+/g, '$1$2&nbsp;');
-        // Прогоняем второй раз для случаев, когда идут два коротких слова подряд
         text = text.replace(/(^|\s)([а-яА-ЯёЁa-zA-Z]{1,3})\s+/g, '$1$2&nbsp;');
 
         const words = text.split(/\s+/).filter(w => w.length > 0);
-        
         let htmlOut = '';
         words.forEach(word => {
             if (word === '_BR_') {
                 htmlOut += '<br>';
             } else {
-                htmlOut += `<span class="bass-word">${word}</span> `;
+                // Класс bass-word удален - мы управляем буквами через reactors.css
+                htmlOut += `<span>${word}</span> `;
             }
         });
         return htmlOut.trim();
@@ -143,7 +129,7 @@ try {
 
     const blocks = srt.replace(/\r/g, '').trim().split(/\n\s*\n/);
     let subIndex = 0;
-    
+
     blocks.forEach(block => {
         const lines = block.split('\n');
         const timeIndex = lines.findIndex(l => l.includes('-->'));
@@ -152,67 +138,60 @@ try {
             if (times.length >= 2) {
                 const absStart = timeToSec(times[0]);
                 const absEnd = timeToSec(times[1]);
-                
+
                 if (isTest && (absEnd <= testStart || absStart >= testEnd)) return;
-                
+
                 const renderStart = isTest ? Math.max(0, absStart - testStart) : absStart;
                 const renderEnd = isTest ? Math.min(totalDuration, absEnd - testStart) : absEnd;
                 const duration = renderEnd - renderStart;
 
                 const rawText = lines.slice(timeIndex + 1).join('<br>');
                 const processedHtmlText = processTextForBass(rawText);
-                
+
                 const subId = `sub-clip-${subIndex}`;
-                const activeStyle = getStyleForTime(absStart);
+                const styleData = getStyleDataForTime(absStart);
+
+                // Сборка составной анимации (появление, базовое движение)
+                const animationString = `${styleData.animIn} ${styleData.durIn}s ease-out forwards, ${styleData.motion} 0.15s infinite`;
 
                 subsHTML += `
 <div id="${subId}" class="clip subtitle-wrapper" data-in="${renderStart.toFixed(3)}" data-out="${renderEnd.toFixed(3)}" data-start="${renderStart.toFixed(3)}" data-duration="${duration.toFixed(3)}" data-track-index="6">
-    <div class="subtitle-animator" style="--dur: ${duration.toFixed(3)}s;">
-        <span class="subtitle-text-inline ${activeStyle}">${processedHtmlText}</span>
+    <div class="subtitle-animator" style="animation: ${animationString};">
+        <span class="subtitle-text-inline ${styleData.styleClass}">${processedHtmlText}</span>
     </div>
 </div>`;
                 subIndex++;
             }
         }
     });
-    log(`Обработано ${subIndex} титульных строк (предлоги склеены).`);
+    log(`Обработано ${subIndex} титульных строк (предлоги склеены, стили назначены).`);
 
     const html = `<!DOCTYPE html>
 <html>
 <head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="reactors.css">
 <style>
     body { margin: 0; background: transparent; overflow: hidden; }
     #root { position: absolute; width: 100vw; height: 100vh; pointer-events: none; }
-    
+
     .subtitle-wrapper {
         position: absolute; width: 100vw; height: 100vh;
         display: flex; align-items: center; justify-content: center;
         perspective: 1000px;
-        font-size: 26px; 
     }
 
     .subtitle-animator {
         width: 85%;
-        max-width: 680px;
+        max-width: 900px;
         text-align: center;
-        animation: fly_up_fade var(--dur) ease-out forwards, micro_jitter 0.12s infinite;
     }
 
     .subtitle-text-inline {
-        font-size: 3.5em !important; 
         white-space: normal; 
         display: inline-block;
     }
-    
-    /* Кинетическая реакция слов на бас (CSS transition удален для совместимости с Hyperframes) */
-    .bass-word {
-        display: inline-block;
-        letter-spacing: calc(var(--bass) * 8px);
-        padding: 0 calc(var(--bass) * 4px);
-        transform: scale(calc(1 + var(--bass) * 0.05));
-    }
-    
-    ${globalFontCss}
+
     ${cssLibrary}
 </style>
 </head>
@@ -222,12 +201,10 @@ ${svgFiltersHTML}
 ${subsHTML}
 </div>
 <script>
-    // Ждем загрузки шрифтов, если они есть
     document.fonts.ready.then(() => {
         window.__timelines = window.__timelines || {};
         window.__timelines["subs_scene"] = document.querySelector('[data-composition-id="subs_scene"]');
     });
-    // Запасной план на случай если шрифты не отдают ready:
     setTimeout(() => {
         window.__timelines = window.__timelines || {};
         if (!window.__timelines["subs_scene"]) {
@@ -239,7 +216,7 @@ ${subsHTML}
 </html>`;
 
     fs.writeFileSync(outputPath, html, 'utf8');
-    log("✅ УСПЕХ! HTML файл субтитров перезаписан.");
+    log("✅ УСПЕХ! HTML файл субтитров скомпилирован по Data-Driven архитектуре.");
 } catch (e) {
     log(`❌ ОШИБКА В BUILD_SUBS.JS: ${e.message}`);
     process.exit(1); 

@@ -1,3 +1,9 @@
+/**
+ * Файл: core/utils/generate_melody.js
+ * Версия: 2.1.0 (Smart Path Resolution)
+ * Описание: Экстрактор огибающей мелодии/пэдов. Пропускает частоты 500Hz-6000Hz со средним сглаживанием.
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
@@ -24,7 +30,7 @@ const log = createLogger(rootDir);
         audioFileName = files.find(f => (f.endsWith('.mp3') || f.endsWith('.wav')) && (f.toLowerCase().includes('melody') || f.toLowerCase().includes('pad') || f.toLowerCase().includes('synth') || f.toLowerCase().includes('inst')));
         if (audioFileName) searchStrategy = "Найден выделенный инструментальный/мелодический стем";
 
-        // 2. Фолбэк на главный трек
+        // 2. Фолбэк на главный трек из конфига (используем config.project вместо config.media для надежности)
         if (!audioFileName && config.project?.audioFile) {
             const cfgName = path.basename(config.project.audioFile);
             if (files.includes(cfgName)) {
@@ -33,12 +39,25 @@ const log = createLogger(rootDir);
             }
         }
 
+        // 3. Фолбэк на общий трек
+        if (!audioFileName) {
+            audioFileName = files.find(f => 
+                (f.endsWith('.mp3') || f.endsWith('.wav')) && 
+                (f.toLowerCase().includes('track') || f.toLowerCase().includes('main') || f.toLowerCase().includes('song') || f.toLowerCase().includes('master'))
+            );
+            if (audioFileName) searchStrategy = "Главный трек (по словам track/main/song/master)";
+        }
+
+        // 4. Абсолютный фолбэк
         if (!audioFileName) {
             audioFileName = files.find(f => f.endsWith('.mp3') || f.endsWith('.wav'));
-            if (audioFileName) searchStrategy = "Абсолютный фолбэк";
+            if (audioFileName) searchStrategy = "Абсолютный фолбэк на первый попавшийся файл";
         }
         
-        if (!audioFileName) throw new Error("Аудиофайл не найден!");
+        if (!audioFileName) {
+            log(`⚠️ ВНИМАНИЕ: Аудиофайл для мелодии не найден. Модуль пропущен.`);
+            process.exit(0);
+        }
 
         log(`🎹 ИСТОЧНИК МЕЛОДИИ: выбран файл [${audioFileName}]`);
         log(`🔍 Стратегия выбора: ${searchStrategy}`);
@@ -118,5 +137,5 @@ const log = createLogger(rootDir);
             log(`✅ УСПЕХ! Огибающая мелодии сохранена в: melody.json`);
         });
 
-    } catch (e) { log(`❌ Ошибка: ${e.message}`); }
+    } catch (e) { log(`❌ Системная ошибка: ${e.message}`); process.exit(1); }
 })();
